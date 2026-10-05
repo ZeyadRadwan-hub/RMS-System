@@ -19,7 +19,7 @@ internal static class ApiError
     {
         var logger = controller.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
             .CreateLogger("RMS.ApiError");
-        logger.LogError("Unexpected API failure ({ExceptionType}), trace {TraceId}",
+        logger.LogError(error, "Unexpected API failure ({ExceptionType}), trace {TraceId}",
             error.GetType().Name, controller.HttpContext.TraceIdentifier);
         return controller.StatusCode(500, new { message = "Unexpected server error",
             traceId = controller.HttpContext.TraceIdentifier });

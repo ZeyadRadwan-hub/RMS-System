@@ -75,6 +75,8 @@ namespace RMS_BACKEND.Controllers
                 if (employee == null)
                     return NotFound(new { message = "Employee not found" });
 
+                var previousManagerId = employee.ManagerId;
+
                 var result = new EmployeeListDto
                 {
                     Id = employee.Id,
@@ -184,6 +186,8 @@ namespace RMS_BACKEND.Controllers
                 if (employee == null)
                     return NotFound(new { message = "Employee not found" });
 
+                var previousManagerId = employee.ManagerId;
+
                 var inputError = await ValidateEmployeeInputAsync(request.Code, request.Name,
                     request.DateOfEmployment, request.EmployeeRole, request.EmployeeLevelId, request.DepartmentID);
                 if (inputError is not null) return BadRequest(new { message = inputError });
@@ -211,6 +215,7 @@ namespace RMS_BACKEND.Controllers
 
                 await using var dbTransaction = await _db.Database.BeginTransactionAsync();
                 var updated = await _employeeRepo.UpdateAsync(employee);
+                await UpdateManagerStatus(previousManagerId);
                 await UpdateManagerStatus(request.ManagerId);
                 await dbTransaction.CommitAsync();
                 
@@ -315,9 +320,10 @@ namespace RMS_BACKEND.Controllers
             if (manager is null || manager.IsDeleted)
                 throw new ArgumentException("Manager must be an active employee");
             var hasSubordinates = await _db.Employees.AnyAsync(e => e.ManagerId == managerId.Value && !e.IsDeleted);
-            if (hasSubordinates && manager.EmployeeRole != EmployeeRole.Manager)
+            var expectedRole = hasSubordinates ? EmployeeRole.Manager : EmployeeRole.Employee;
+            if (manager.EmployeeRole != expectedRole)
             {
-                manager.EmployeeRole = EmployeeRole.Manager;
+                manager.EmployeeRole = expectedRole;
                 await _employeeRepo.UpdateAsync(manager);
             }
         }

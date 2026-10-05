@@ -27,7 +27,7 @@
 
 | الأمر | آخر نتيجة مؤكدة |
 | --- | --- |
-| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 82 Passed، 0 Failed، 0 Skipped؛ بعد الهجرة 008 |
+| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 83 Passed، 0 Failed، 0 Skipped؛ بعد الهجرة 008 |
 | `npm --prefix FrontEnd test` | 4 Passed، 0 Failed |
 | `npm --prefix FrontEnd run lint` | Exit 0، 0 errors، 0 warnings |
 | `npm --prefix FrontEnd run build` | Exit 0، main JS ~309KB وDashboard ~379KB، دون تحذير chunk >500KB |

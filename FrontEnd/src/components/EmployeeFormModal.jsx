@@ -121,8 +121,6 @@ const EmployeeFormModal = ({ isOpen, onClose, onSubmit, employee, mode }) => {
         if (!formData.departmentID) newErrors.departmentID = 'Department is required';
         if (!formData.dateOfEmployment) newErrors.dateOfEmployment = 'Date of employment is required';
         if (!formData.employeeLevelID) newErrors.employeeLevelID = 'Employee level is required';
-        if (!formData.managerID && Number(formData.departmentID) !== 10)
-            newErrors.managerID = 'Manager is required';
         if (mode === 'create' && formData.password.length < 12)
             newErrors.password = 'An initial password of at least 12 characters is required';
 
@@ -228,7 +226,7 @@ const EmployeeFormModal = ({ isOpen, onClose, onSubmit, employee, mode }) => {
                         {/* Manager */}
                         <div className="form-group">
                             <CustomSelect
-                                label="Manager *"
+                                label="Manager (optional)"
                                 value={formData.managerID}
                                 onChange={(val) => handleCustomChange('managerID', val)}
                                 error={errors.managerID}
