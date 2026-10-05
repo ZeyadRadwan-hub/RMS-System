@@ -1,0 +1,263 @@
+/* ============================================
+   Quick Insights Popover - Premium Floating Card
+   Displays employee leave stats on hover
+   ============================================ */
+
+/* Wrapper that anchors the popover relative to the cell */
+.qi-anchor {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* Employee name with subtle hover hint */
+.qi-employee-name {
+    font-weight: 600;
+    color: #1E293B;
+    border-bottom: 1.5px dashed transparent;
+    transition: all 0.2s ease;
+    padding-bottom: 1px;
+}
+
+.qi-anchor:hover .qi-employee-name {
+    color: var(--color-primary-deep);
+    border-bottom-color: var(--color-primary-deep);
+}
+
+/* The floating popover card */
+.qi-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    width: 320px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-left: 4px solid var(--color-primary-deep);
+    border-radius: 12px;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.12),
+        0 8px 16px rgba(0, 0, 0, 0.06);
+    padding: 0;
+    overflow: hidden;
+
+    /* Entry animation */
+    opacity: 0;
+    transform: translateY(-6px);
+    animation: qi-fadeIn 0.2s ease forwards;
+    pointer-events: none;
+}
+
+/* Allow interaction when popover itself is hovered */
+.qi-anchor:hover .qi-popover {
+    pointer-events: auto;
+}
+
+@keyframes qi-fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Popover header */
+.qi-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #FEF2F2 0%, #FFF5F5 100%);
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.qi-header-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(196, 22, 28, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.qi-header-icon svg {
+    color: var(--color-primary-deep);
+}
+
+.qi-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.qi-header-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.qi-header-sub {
+    font-size: 0.65rem;
+    color: #94A3B8;
+    margin: 0;
+}
+
+/* Stat grid inside popover */
+.qi-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.qi-stat {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #F8FAFC;
+    border-right: 1px solid #F8FAFC;
+    transition: background 0.15s ease;
+}
+
+.qi-stat:hover {
+    background: #FAFBFC;
+}
+
+.qi-stat:nth-child(even) {
+    border-right: none;
+}
+
+.qi-stat:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+.qi-stat-label {
+    font-size: 0.575rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94A3B8;
+    margin-bottom: 4px;
+}
+
+.qi-stat-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1E293B;
+    line-height: 1;
+}
+
+.qi-stat-unit {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #94A3B8;
+    margin-left: 3px;
+}
+
+/* Color-coded stat values */
+.qi-stat-value.qi-green {
+    color: #059669;
+}
+
+.qi-stat-value.qi-orange {
+    color: #D97706;
+}
+
+.qi-stat-value.qi-red {
+    color: #DC2626;
+}
+
+.qi-stat-value.qi-blue {
+    color: #2563EB;
+}
+
+/* Department overlap alert strip */
+.qi-dept-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: #FFFBEB;
+    border-top: 1px solid #FEF3C7;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #92400E;
+}
+
+.qi-dept-alert svg {
+    flex-shrink: 0;
+    color: #D97706;
+}
+
+.qi-dept-alert.qi-clear {
+    background: #F0FDF4;
+    border-top-color: #DCFCE7;
+    color: #166534;
+}
+
+.qi-dept-alert.qi-clear svg {
+    color: #16A34A;
+}
+
+/* Loading state */
+.qi-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    color: #94A3B8;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.qi-loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #E2E8F0;
+    border-top-color: var(--color-primary-deep);
+    border-radius: 50%;
+    animation: qi-spin 0.6s linear infinite;
+}
+
+@keyframes qi-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error state */
+.qi-error {
+    padding: 1rem;
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* Right-side overflow correction */
+.qi-popover.qi-right-aligned {
+    left: auto;
+    right: 0;
+}
+
+/* Responsive: hide on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .qi-popover {
+        display: none !important;
+    }
+    .qi-anchor:hover .qi-employee-name {
+        color: inherit;
+        border-bottom-color: transparent;
+    }
+}
+.qi-trigger {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-align: inherit;
+}
+.qi-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }

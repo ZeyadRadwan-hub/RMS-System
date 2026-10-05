@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RMS-BACKEND/RMS-BACKEND.csproj" />
+  <Project Path="RMS-BACKEND.Tests/RMS-BACKEND.Tests.csproj" />
+</Solution>

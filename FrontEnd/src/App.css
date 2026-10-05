@@ -1,0 +1,26 @@
+/* App Layout Styles */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg-main);
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is collapsed */
+.sidebar.collapsed~.main-content {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+}

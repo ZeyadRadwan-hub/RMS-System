@@ -1,0 +1,126 @@
+/* Notification Modal Styles */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.notification-modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-top: 6px solid transparent;
+}
+
+.notification-modal.alert {
+    border-top-color: #C4161C;
+}
+
+.notification-modal.confirm,
+.notification-modal.prompt {
+    border-top-color: #C4161C;
+}
+
+.notification-content {
+    text-align: center;
+}
+
+.notification-icon {
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.notification-icon.success {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.notification-icon.error {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.notification-icon.warning {
+    background: #fffbeb;
+    color: #f59e0b;
+}
+
+.notification-icon.info {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.notification-icon.question {
+    background: #f8fafc;
+    color: #C4161C;
+}
+
+.notification-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+}
+
+.notification-content p {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.notification-actions .btn {
+    flex: 1;
+    padding: 0.75rem;
+}
+
+.notification-input {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

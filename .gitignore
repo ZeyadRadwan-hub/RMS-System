@@ -1,0 +1,31 @@
+# Build output and package caches
+**/bin/
+**/obj/
+FrontEnd/node_modules/
+FrontEnd/dist/
+.vite/
+outputs/
+
+# Local/editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+*.log
+*.local
+
+# Local environment and protected provisioning material
+.env
+.env.*
+!.env.example
+*.bak
+*.tsv
+~$*
+
+# Test/runtime caches
+__pycache__/
+.pytest_cache/
+playwright-report/
+test-results/

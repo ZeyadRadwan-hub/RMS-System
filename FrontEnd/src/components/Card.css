@@ -1,0 +1,229 @@
+/* Unified Card Design System */
+
+/* Base Card Container - NO accent by default */
+.card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 0;
+    transition: all 0.3s ease;
+    overflow: visible;
+    position: relative;
+    border: 1px solid #f1f5f9;
+    border-left: 4px solid var(--color-primary-deep); /* default corporate left border accent */
+}
+
+.card-hoverable:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+/* Card Header */
+.card-header {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* Card Body */
+.card-body {
+    padding: var(--spacing-xl);
+}
+
+/* ============================================
+   STAT CARD - Dashboard/Statistics Cards ONLY
+   WITH red accent indicator (ONLY for KPI/metrics cards)
+   Scaled to match 80% zoom reference
+   ============================================ */
+.stat-card {
+    display: flex;
+    flex-direction: row;
+    /* Explicitly set horizontal layout */
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    min-height: 100px;
+    border: 1px solid #f1f5f9;
+    border-left: 4px solid var(--color-primary-deep); /* default accent border */
+    gap: 0;
+}
+
+/* Force card-body inside stat-card to be flex row for icon positioning */
+.stat-card .card-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    gap: 1.25rem;
+}
+
+/* Left Section - Text Content (Label + Value) */
+.stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    /* Slightly increased */
+    justify-content: center;
+}
+
+/* Label - Top of card, uppercase, muted */
+.stat-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4B5563;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Numeric Value - Below label, large and bold */
+.stat-value {
+    font-size: 1.75rem;
+    /* Reduced from 2.25rem (36px) */
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin: 0;
+}
+
+/* Right Section - Icon Container */
+.stat-icon-container {
+    width: 52px;
+    /* Reduced from 72px */
+    height: 52px;
+    border-radius: 8px;
+    /* Reduced from 12px */
+    background: rgba(196, 22, 28, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-container svg {
+    color: var(--color-primary-deep);
+    stroke-width: 2;
+}
+
+/* Legacy Icon Backgrounds (for backward compatibility) */
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-total {
+    background: linear-gradient(135deg, #C4161C 0%, #E53935 100%);
+}
+
+.stat-icon-pending {
+    background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%);
+}
+
+.stat-icon-approved {
+    background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+}
+
+.stat-icon-rejected {
+    background: linear-gradient(135deg, #EF5350 0%, #E57373 100%);
+}
+
+/* Regular content cards - filters, tables, etc. - NO accent */
+.filters-card,
+.table-card,
+.chart-card {
+    border-left: none;
+    /* Explicitly remove accent */
+}
+
+/* Card Variants */
+.card-compact .card-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.card-compact .card-body {
+    padding: var(--spacing-lg);
+}
+
+.card-no-padding .card-body {
+    padding: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .stat-card {
+        padding: 1.25rem 1.5rem;
+        min-height: 110px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        /* 32px */
+    }
+
+    .stat-icon-container {
+        width: 64px;
+        height: 64px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        min-height: 100px;
+        padding: 1rem 1.25rem;
+        gap: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        /* 28px */
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        /* 12px */
+    }
+
+    .stat-icon-container {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-card {
+        min-height: 90px;
+        padding: 0.875rem 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        /* 24px */
+    }
+
+    .stat-icon-container {
+        width: 48px;
+        height: 48px;
+    }
+}
