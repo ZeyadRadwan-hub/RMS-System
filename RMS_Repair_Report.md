@@ -433,9 +433,9 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 61؛ الخطورة: Medium.
 - السبب: لا test suites مضمنة
-- قبل/بعد: قبل: dotnet test خرج 0 بلا اختبارات؛ package.json بلا test script؛ rg لا يجد test files | بعد: الإغلاق غير مثبت بعد
-- التعديل: أضيفت اختبارات Backend وFrontend وbrowser حقيقية، لكن تغطية كل المسارات والحالات لم تكتمل.
-- التحقق: 82 Backend؛ 4 Node؛ browser_smoke.py. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: dotnet test خرج 0 بلا اختبارات؛ package.json بلا test script؛ rg لا يجد test files | بعد: test suites تعمل وتُعاد بنجاح
+- التعديل: أضيفت اختبارات Backend وFrontend وbrowser حقيقية؛ اكتمال تغطية المسارات التجارية يُتتبع منفصلًا في مصفوفة التحقق.
+- التحقق: 85 Backend؛ 5 Node؛ browser_smoke.py. الحالة: **Fixed & Verified**.
 
 ### APP-BT-052 — ESLint يفشل بـ21 مشكلة
 
