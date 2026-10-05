@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RMS_BACKEND.Data;
-using RMS_BACKEND.Models;
 using RMS_BACKEND.Repositories;
 using Xunit;
 
@@ -33,9 +31,8 @@ public class IdentifierAllocationTests
             .Options;
         await using var db1 = new ApplicationDbContext(options);
         await using var db2 = new ApplicationDbContext(options);
-        var hasher = new PasswordHasher<Employee>();
-        var repo1 = new EmployeeRepository(db1, hasher);
-        var repo2 = new EmployeeRepository(db2, hasher);
+        var repo1 = new EmployeeRepository(db1);
+        var repo2 = new EmployeeRepository(db2);
         var ids = await Task.WhenAll(repo1.GetNextIdAsync(), repo2.GetNextIdAsync());
         Assert.NotEqual(ids[0], ids[1]);
         Assert.All(ids, id => Assert.True(id > 5));

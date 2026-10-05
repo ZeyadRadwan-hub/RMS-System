@@ -10,6 +10,7 @@ import CustomDatePicker from '../components/CustomDatePicker';
 import QuickInsightsPopover from '../components/QuickInsightsPopover';
 import './MyRequests.css';
 import { overlapsDateRange } from '../utils/dateRange';
+import { statusLabel, statusFilterOptions, matchesStatusFilter, statusBadgeClass } from '../utils/status';
 
 // Normalize raw DB status strings to clean English labels
 const normalizeStatus = (raw) => {
@@ -67,7 +68,7 @@ const AllRequests = () => {
 
         // Status filter
         if (filters.status) {
-            filtered = filtered.filter(req => req.statusName === filters.status);
+            filtered = filtered.filter(req => matchesStatusFilter(req.statusID, filters.status));
         }
 
         // Employee filter
@@ -152,7 +153,7 @@ const AllRequests = () => {
     }
 
     // Get unique values for filter dropdowns
-    const uniqueStatuses = [...new Set(requests.map(r => r.statusName))].filter(Boolean);
+    const uniqueStatuses = statusFilterOptions(requests);
     const uniqueDepartments = [...new Set(requests.map(r => r.departmentName))].filter(Boolean);
     const uniqueTypes = [...new Set(requests.map(r => r.transactionTypeName))].filter(Boolean);
 
@@ -214,7 +215,7 @@ const AllRequests = () => {
                             onChange={(val) => handleFilterChange('status', val)}
                             options={[
                                 { value: '', label: 'All Statuses' },
-                                ...uniqueStatuses.map(s => ({ value: s, label: s }))
+                                ...uniqueStatuses
                             ]}
                         />
                     </div>
@@ -300,8 +301,8 @@ const AllRequests = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`badge badge-${request.statusName?.toLowerCase().replace(/\s+/g, '-')}`}>
-                                                {normalizeStatus(request.statusName)}
+                                            <span className={statusBadgeClass(request.statusID)}>
+                                                {statusLabel(request.statusID, normalizeStatus(request.statusName))}
                                             </span>
                                         </td>
                                         <td>
@@ -360,7 +361,7 @@ const AllRequests = () => {
                                 <p><strong>Start Date:</strong> {new Date(selectedRequest.startDate).toLocaleDateString()}</p>
                                 <p><strong>End Date:</strong> {new Date(selectedRequest.endDate).toLocaleDateString()}</p>
                                 <p><strong>Days:</strong> {selectedRequest.calculatedDays}</p>
-                                <p><strong>Status:</strong> {normalizeStatus(selectedRequest.statusName)}</p>
+                                <p><strong>Status:</strong> {statusLabel(selectedRequest.statusID, normalizeStatus(selectedRequest.statusName))}</p>
                                 {selectedRequest.leaveRationale && (
                                     <p><strong>Rationale:</strong> {selectedRequest.leaveRationale}</p>
                                 )}

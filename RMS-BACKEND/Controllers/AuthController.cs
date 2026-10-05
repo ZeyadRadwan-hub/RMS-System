@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using RMS_BACKEND.Data;
@@ -20,7 +19,6 @@ namespace RMS_BACKEND.Controllers
         private readonly IRequestStateMachineService _stateMachine;
         private readonly SessionService _sessions;
         private readonly ApplicationDbContext _db;
-        private readonly IPasswordHasher<Models.Employee> _passwordHasher;
         private readonly LoginAttemptGuard _loginGuard;
 
         public AuthController(
@@ -28,14 +26,12 @@ namespace RMS_BACKEND.Controllers
             IRequestStateMachineService stateMachine,
             SessionService sessions,
             ApplicationDbContext db,
-            IPasswordHasher<Models.Employee> passwordHasher,
             LoginAttemptGuard loginGuard)
         {
             _employeeRepo = employeeRepo;
             _stateMachine = stateMachine;
             _sessions = sessions;
             _db = db;
-            _passwordHasher = passwordHasher;
             _loginGuard = loginGuard;
         }
 
@@ -114,18 +110,17 @@ namespace RMS_BACKEND.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
                 string.IsNullOrWhiteSpace(request.NewPassword) ||
-                request.NewPassword.Length < 12 || request.NewPassword.Length > 128)
-                return BadRequest(new { message = "New password must be 12–128 characters" });
+                request.NewPassword.Length < 9 || request.NewPassword.Length > 128)
+                return BadRequest(new { message = "New password must be 9–128 characters" });
 
             var employee = await _db.Employees.FirstOrDefaultAsync(e => e.Id == User.EmployeeId() && !e.IsDeleted);
             if (employee is null) return Unauthorized();
-            var verification = _passwordHasher.VerifyHashedPassword(employee, employee.Password, request.CurrentPassword);
-            if (verification == PasswordVerificationResult.Failed)
+            if (!string.Equals(employee.Password, request.CurrentPassword, StringComparison.Ordinal))
                 return BadRequest(new { message = "Current password is incorrect" });
             if (request.CurrentPassword == request.NewPassword)
                 return BadRequest(new { message = "New password must be different" });
 
-            employee.Password = _passwordHasher.HashPassword(employee, request.NewPassword);
+            employee.Password = request.NewPassword;
             var now = DateTime.UtcNow;
             await using var transaction = await _db.Database.BeginTransactionAsync();
             await _db.AuthSessions.Where(s => s.EmployeeId == employee.Id && s.RevokedUtc == null)

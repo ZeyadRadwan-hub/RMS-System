@@ -2,16 +2,15 @@
 
 ## 🌐 Base URL
 ```
-Development: https://localhost:5001/api
+Development: http://localhost:5190/api
 Production: https://your-domain.com/api
 ```
 
 ## 🔐 Authentication
 
-All endpoints (except login) require authentication headers:
+All protected endpoints require an expiring bearer session token returned by login. Identity and role are verified on the server:
 ```http
-X-Employee-Id: {employeeId}
-X-Employee-Role: {role}  # Employee, Manager, HR, or Board
+Authorization: Bearer <session-token>
 ```
 
 ---
@@ -27,7 +26,7 @@ Login and retrieve user information with role determination.
 ```json
 {
   "code": "1980009",
-  "password": "<provisioned-password>"
+  "password": "<current-test-password>"
 }
 ```
 
@@ -60,7 +59,7 @@ Create a new leave request.
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -107,7 +106,7 @@ Update a pending leave request (only while status = Pending).
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -134,7 +133,7 @@ Cancel a leave request (before final decision).
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Response:**
@@ -158,7 +157,7 @@ Approve a leave request (Manager/HR/Board).
 
 **Headers:**
 ```http
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -192,7 +191,7 @@ Reject a leave request (Manager/HR/Board).
 
 **Headers:**
 ```http
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -224,7 +223,7 @@ Get a specific transaction by ID.
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Response:** Same as POST /transactions
@@ -236,7 +235,7 @@ Get one bounded page of requests for the logged-in employee. `pageSize` is clamp
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Response:**
@@ -270,7 +269,7 @@ Get all requests for the manager's team.
 
 **Headers:**
 ```http
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 ```
 
 **Query:** `page` and `pageSize` (maximum 200). The response is a bounded page object with `items`, `totalCount`, and `hasNext`.
@@ -282,8 +281,7 @@ Get all requests (HR/Board only).
 
 **Headers:**
 ```http
-X-Employee-Id: 1
-X-Employee-Role: HR
+Authorization: Bearer <session-token>
 ```
 
 **Query:** `page` and `pageSize` (maximum 200). The response is a bounded page object with `items`, `totalCount`, and `hasNext`.
@@ -295,8 +293,7 @@ Get filtered requests with advanced filtering.
 
 **Headers:**
 ```http
-X-Employee-Id: 1
-X-Employee-Role: HR
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -322,8 +319,7 @@ Get dashboard statistics with filters.
 
 **Headers:**
 ```http
-X-Employee-Id: 1
-X-Employee-Role: HR
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -381,8 +377,7 @@ Get chart data (bar and pie charts).
 
 **Headers:**
 ```http
-X-Employee-Id: 1
-X-Employee-Role: HR
+Authorization: Bearer <session-token>
 ```
 
 **Request:**
@@ -476,7 +471,7 @@ Get leave balance for the logged-in employee.
 
 **Headers:**
 ```http
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 **Query Parameters:**
@@ -491,7 +486,7 @@ Get leave balances for the manager's team.
 
 **Headers:**
 ```http
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 ```
 
 **Query Parameters:**
@@ -568,7 +563,7 @@ Create a new employee.
 {
   "code": "2026001",
   "name": "New Employee",
-  "password": "<provisioned-password>",
+  "password": "<current-test-password>",
   "dateOfEmployment": "2026-02-01",
   "employeeRole": 0,
   "employeeLevelId": 1,
@@ -727,12 +722,12 @@ RMS Leave Management API
 POST /api/auth/login
 {
   "code": "1990027",
-  "password": "<provisioned-password>"
+  "password": "<current-test-password>"
 }
 
 # 2. Create request
 POST /api/transactions
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 {
   "transactionTypesID": 2,
   "startDate": "2026-03-01",
@@ -743,7 +738,7 @@ X-Employee-Id: 2
 
 # 3. Cancel request
 POST /api/transactions/1/cancel
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 ```
 
 #### Scenario 2: Manager Approves Team Request
@@ -752,16 +747,16 @@ X-Employee-Id: 2
 POST /api/auth/login
 {
   "code": "1980009",
-  "password": "<provisioned-password>"
+  "password": "<current-test-password>"
 }
 
 # 2. Get team requests
 GET /api/transactions/my-team-requests
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 
 # 3. Approve request
 POST /api/transactions/1/approve
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 {
   "transactionId": 1,
   "responseMessage": "Approved"
@@ -774,12 +769,12 @@ X-Employee-Id: 1
 POST /api/auth/login
 {
   "code": "1980009",
-  "password": "<provisioned-password>"
+  "password": "<current-test-password>"
 }
 
 # 2. Approve any request (override)
 POST /api/transactions/1/approve
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 {
   "transactionId": 1,
   "responseMessage": "HR Override - Approved"

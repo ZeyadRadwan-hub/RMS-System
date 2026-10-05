@@ -1,260 +1,74 @@
-# 🚀 RMS Leave Management System - Quick Start Guide
+# تشغيل RMS محليًا
 
-## ✅ System Status
+آخر مراجعة: 2026-10-05. تُشغّل الأوامر التالية من مجلد المشروع الأساسي الذي يحتوي `RMS-BACKEND.slnx` و`FrontEnd`.
 
-Your RMS Leave Management System is now **READY TO USE**!
+## المتطلبات وقاعدة البيانات
 
----
+- .NET 10 SDK وNode.js/npm وSQL Server LocalDB.
+- قاعدة الاختبار المصرح بها: `RMS` على `(localdb)\MSSQLLocalDB`، باستخدام Windows Authentication.
+- إعداد الاتصال موجود في `RMS-BACKEND/appsettings.json`؛ تشغيل الخادم لا يُطبّق تغييرات schema تلقائيًا.
+- قبل أي تغيير schema أو بيانات جوهري: نسخة COPY_ONLY مع CHECKSUM ثم RESTORE VERIFYONLY. تعليمات الهجرات وترتيبها في `RMS-BACKEND/Database/MIGRATIONS.md`. لا تُعد تشغيل هجرة مطبقة.
+- لا تستخدم قاعدة أخرى أو تستعد نسخة فوق RMS ضمن اختبارات هذه المهمة.
 
-## 🌐 Access URLs
+فحص read-only للعقد الحالي:
 
-### **Frontend (React + Vite)**
-👉 **http://localhost:5174/**
-
-- Login page with red gradient design
-- Role-based dashboards
-- ag-Grid tables for data management
-- Real-time leave balance calculations
-
-### **Backend API (ASP.NET Core)**
-👉 **https://localhost:5001/**
-
-- Swagger UI for API testing
-- RESTful endpoints
-- SQL Server database integration
-- Complete business logic implementation
-
----
-
-## 🔑 Test Credentials
-
-### HR Manager (Full Access)
-- **Code**: `1980009`
-- **Password**: `<provisioned-password>` (read from the protected provisioning file)
-- **Access**: Dashboard, My Requests, Staff Requests, Employee List, Profile
-
-### Employee (Quality Department)
-- **Code**: `1990027`
-- **Password**: `<provisioned-password>` (read from the protected provisioning file)
-- **Access**: Profile, My Requests, Leave Balance
-
-### Employee (Quality Department)
-- **Code**: `1990055`
-- **Password**: `<provisioned-password>` (read from the protected provisioning file)
-- **Access**: Profile, My Requests, Leave Balance
-
----
-
-## 📋 How to Run (If Servers Are Not Running)
-
-### **1. Start Backend API**
-```bash
-cd c:\Users\hp\source\repos\RMS-BACKEND\RMS-BACKEND
-dotnet run
+```powershell
+sqlcmd -S '(localdb)\MSSQLLocalDB' -d RMS -E -b -i 'RMS-BACKEND\Database\001_baseline_validation.sql'
 ```
 
-**Expected Output:**
-```
-Now listening on: https://localhost:5001
-Now listening on: http://localhost:5000
-```
+## تشغيل Backend
 
-### **2. Start Frontend (In a NEW Terminal)**
-```bash
-cd c:\Users\hp\source\repos\RMS-BACKEND\FrontEnd
-npm run dev
+```powershell
+dotnet restore RMS-BACKEND.slnx
+dotnet build RMS-BACKEND.slnx --no-restore
+dotnet run --project RMS-BACKEND/RMS-BACKEND.csproj --no-build --launch-profile http
 ```
 
-**Expected Output:**
-```
-VITE v7.3.1  ready in XXXXms
-➜  Local:   http://localhost:5174/
-```
+عنوان التطوير HTTP: **http://localhost:5190**، ومسار API: **http://localhost:5190/api**.
+Swagger متاح في Development على جذر عنوان الخادم. ملف launchSettings يحتوي أيضًا profile باسم `https` على https://localhost:7167. لم يُثبت مسار شهادة HTTPS في اختبار المتصفح الحالي.
 
----
+## تشغيل Frontend
 
-## 🎯 Testing the System
+افتح terminal آخر من المجلد الأساسي:
 
-### **Step 1: Login**
-1. Open **http://localhost:5174/** in your browser
-2. Enter employee code: `1980009`
-3. Enter the password from the protected provisioning file (never commit it)
-4. Click **Sign In**
-
-### **Step 2: Explore Dashboard**
-- View statistics (Total, Pending, Approved, Rejected requests)
-- See role-based navigation in the left sidebar
-- Red gradient theme throughout
-
-### **Step 3: Test Leave Requests**
-1. Click **My Requests** in sidebar
-2. Click **Submit New Request** button
-3. Fill in leave details
-4. Submit and see it in the table
-
-### **Step 4: Test Leave Balance**
-1. Click **Leave Balance** in sidebar
-2. View your accrued leave
-3. See dynamic calculations based on:
-   - Months of service
-   - Probation period (first 6 months)
-   - Annual entitlement (Level A = 15 days, Level B = 24 days)
-   - Monthly accrual rate
-
-### **Step 5: HR Features (Login as HR)**
-1. Logout and login as `1980009`
-2. Navigate to **Employee List**
-3. View all employees in ag-Grid table
-4. Test search functionality
-5. Navigate to **Staff Requests**
-6. Approve/Reject requests with override authority
-
----
-
-## 🔧 Troubleshooting
-
-### **Frontend Not Loading?**
-```bash
-cd c:\Users\hp\source\repos\RMS-BACKEND\FrontEnd
-npm install --legacy-peer-deps
-npm run dev
+```powershell
+npm --prefix FrontEnd ci
+npm --prefix FrontEnd run dev -- --host localhost --port 5173 --strictPort
 ```
 
-### **Backend API Error?**
-```bash
-cd c:\Users\hp\source\repos\RMS-BACKEND\RMS-BACKEND
-dotnet clean
-dotnet build
-dotnet run
+افتح **http://localhost:5173/login**. اختيار strictPort يمنع انتقال Vite بصمت إلى port غير موجود في إعداد CORS.
+
+`FrontEnd/src/services/api.js` يستخدم `VITE_API_BASE_URL` إن وُجد؛ وإلا يستخدم http://localhost:5190/api في التطوير و`/api` في production. timeout يساوي 15 ثانية. إعداد CORS يسمح بالـorigins المعلنة في appsettings؛ إذا احتجت عنوانًا مختلفًا، حدّث إعداد البيئة بصورة متطابقة في الطرفين.
+
+## الدخول ومسارات العمل
+
+في قاعدة `RMS` التجريبية الحالية أعاد المستخدم تعيين كلمات مرور الحسابات الخمسة إلى قيمة مشتركة نصية، أرسلها في المحادثة. ملف `RMS_20261004_credentials.tsv` القديم لا يحتوي كلمات المرور الحالية؛ يمكن استخدامه لمعرفة الأكواد فقط. لا تُنقل سياسة كلمة المرور المشتركة والنص الصريح إلى الإنتاج. لتشغيل اختبار المتصفح المحلي، ضع القيمة الحالية في متغير `RMS_TEST_PASSWORD` داخل جلسة PowerShell دون إضافتها إلى المستودع.
+
+Login يعيد token للجلسة. أرسل `Authorization: Bearer <session-token>` في الطلبات المحمية؛ الهوية والدور يُحددهما الخادم. headers القديمة X-Employee-Id وX-Employee-Role ليست وسيلة مصادقة.
+
+- Employee: My Requests وLeave Balance وProfile.
+- Manager: مسارات الموظف وTeam Requests لتابعيه.
+- HR: Employees وAll Requests، وطلباته الشخصية تُراجع بواسطة Board.
+- Board: HR Requests وHistory وبيانات المؤسسة وفق صلاحيات API.
+- Sick Leave يحتاج مستندًا طبيًا عبر multipart؛ لا تُرسل File داخل JSON.
+- معاملات all/my/team/filter تعيد `items/page/pageSize/totalCount/hasNext`، بحد أقصى 200 عنصر في الصفحة.
+- Carryover يحتاج سياسة تجارية قبل تنفيذه؛ راجع التقرير لحالة كل بند.
+
+## التحقق
+
+```powershell
+dotnet test RMS-BACKEND.slnx --no-restore
+npm --prefix FrontEnd test
+npm --prefix FrontEnd run lint
+npm --prefix FrontEnd run build
+npm --prefix FrontEnd audit --audit-level=low
 ```
 
-### **Database Connection Issues?**
-1. Open `RMS-BACKEND\appsettings.json`
-2. Verify connection string points to your SQL Server instance
-3. Ensure database `RMS` exists with all tables populated
+أوامر اختبارات المتصفح والأدلة في `RMS_Test_Evidence/acceptance_2026-10-05.md`.
+هذه البوابات لا تُغني عن التحقق من كل مسار في `RMS_Verification_Matrix.csv`.
 
-### **CORS Errors?**
-The backend is configured to allow all origins in development. If you still see CORS errors:
-1. Check that backend is running on `https://localhost:5001`
-2. Verify `apiClient.js` has correct `API_BASE_URL`
+## تشخيص التشغيل
 
----
+عند فشل SQL، تحقق من instance وقاعدة RMS واسم حساب Windows ونص الخطأ قبل تغيير إعدادات الدخول. عند انشغال port، حدّد العملية المالكة قبل إيقافها. عند 401 أعد تسجيل الدخول؛ عند 403 راجع دور الحساب وملكية الطلب. عند فشل الرصيد، استخدم Retry بعد عودة الاتصال.
 
-## 📊 Features Implemented
-
-### ✅ **Authentication & Authorization**
-- Login with employee code and password
-- Role determination (Board, HR, Manager, Employee)
-- Protected routes based on roles
-
-### ✅ **Request Management**
-- Create, edit, cancel leave requests
-- State machine enforcement (Pending → Pending HR → Approved/Rejected)
-- Manager approval workflow
-- HR override authority
-
-### ✅ **Leave Balance Calculation**
-- Dynamic calculation: `Unit × Sign × (EndDate - StartDate).Days`
-- Monthly accrual: `Annual Leave / 12`
-- Probation period handling (6 months)
-- Real-time balance updates
-
-### ✅ **Dashboard & Analytics**
-- Role-based statistics
-- Department/Employee grouping
-- Chart placeholders for ag-Grid Charts
-- Filter capabilities
-
-### ✅ **Employee Management (HR)**
-- View all employees
-- Add/Edit/Delete employees
-- Search and filter
-- ag-Grid integration
-
-### ✅ **UI/UX Excellence**
-- Red gradient theme (#C4161C to #E53935)
-- White card-based layouts
-- Soft shadows and rounded corners
-- Responsive sidebar navigation
-- ag-Grid tables with theme matching
-- Clean, modern typography (Inter/Poppins/Roboto)
-
----
-
-## 🎨 Design Highlights
-
-- **Primary Color**: Red gradient
-- **Background**: Light gray (#F8F9FB)
-- **Cards**: White with 12px border radius
-- **Shadows**: Soft (0 4px 20px rgba(0,0,0,0.05))
-- **Typography**: Inter, Poppins, Roboto
-- **Tables**: ag-Grid with zebra rows
-- **Buttons**: Red gradient primary, white secondary
-
----
-
-## 📁 Project Structure
-
-```
-RMS-BACKEND/
-├── RMS-BACKEND/              # Backend API (.NET)
-│   ├── Controllers/          # API endpoints
-│   ├── Services/             # Business logic
-│   ├── Repositories/         # Data access
-│   ├── Models/               # Entity models
-│   └── DTOs/                 # Data transfer objects
-│
-├── FrontEnd/                 # Frontend (React + Vite)
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/            # Route pages
-│   │   ├── services/         # API communication
-│   │   ├── context/          # Global state (Auth)
-│   │   └── theme/            # Design tokens
-│   └── package.json
-│
-└── Documentation/
-    ├── README.md
-    ├── API_DOCUMENTATION.md
-    ├── FLOW_DIAGRAM.md
-    └── QUICK_START.md
-```
-
----
-
-## 🎉 Success Checklist
-
-- [x] Backend API running on https://localhost:5001
-- [x] Frontend running on http://localhost:5174
-- [x] Database connected and populated
-- [x] Login working with test credentials
-- [x] Dashboard displaying statistics
-- [x] Leave requests CRUD operations
-- [x] Leave balance calculations
-- [x] Role-based navigation
-- [x] ag-Grid tables functional
-- [x] Red gradient theme applied
-- [x] Responsive design working
-
----
-
-## 🚀 Next Steps
-
-1. **Test All Workflows**: Login as different roles and test all features
-2. **Populate More Data**: Add more employees and transactions for testing
-3. **Implement Charts**: Add ag-Grid Charts for bar and pie charts
-4. **Add Validations**: Enhance form validations on frontend
-5. **Review session operations**: use the approved password-reset/onboarding workflow
-6. **Operationalize security**: configure rate limiting, monitoring, and HTTPS
-7. **Deploy to Production**: Configure for production environment
-
----
-
-**Your RMS Leave Management System is LIVE! 🎊**
-
-Access it now at: **http://localhost:5174/**
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: 2026-02-02
+لـproduction: اضبط HTTPS والـreverse proxy ليخدم `/api` أو اضبط VITE_API_BASE_URL وقت البناء، وعيّن اتصال DB وCORS المناسبين. نشر production لم يُختبر في هذه المهمة.

@@ -1,8 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RMS_BACKEND.DTOs
 {
     public class LoginRequestDto
     {
+        [Required(AllowEmptyStrings = false)]
+        [StringLength(50, MinimumLength = 1)]
         public string Code { get; set; } = string.Empty;
+
+        [Required(AllowEmptyStrings = false)]
+        [StringLength(128)]
         public string Password { get; set; } = string.Empty;
     }
 
@@ -21,7 +28,12 @@ namespace RMS_BACKEND.DTOs
 
     public class ChangePasswordRequestDto
     {
+        [Required(AllowEmptyStrings = false)]
+        [StringLength(128)]
         public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required(AllowEmptyStrings = false)]
+        [StringLength(128, MinimumLength = 9)]
         public string NewPassword { get; set; } = string.Empty;
     }
 }

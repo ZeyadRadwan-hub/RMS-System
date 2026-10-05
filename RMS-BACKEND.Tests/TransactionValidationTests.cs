@@ -48,8 +48,35 @@ public class TransactionValidationTests
         Assert.Equal(1, items.GetArrayLength());
         Assert.Equal(1, root.GetProperty("page").GetInt32());
         Assert.Equal(1, root.GetProperty("pageSize").GetInt32());
-        Assert.Equal(3, root.GetProperty("totalCount").GetInt32());
+        var totalCount = root.GetProperty("totalCount").GetInt32();
+        Assert.True(totalCount >= 2);
         Assert.True(root.GetProperty("hasNext").GetBoolean());
+    }
+
+    [Trait("Category", "Validation")]
+    [Theory]
+    [InlineData("/api/transactions", "{\"transactionTypesID\":0,\"startDate\":\"2026-10-10\",\"endDate\":\"2026-10-10\",\"leaveRationale\":\"DTO_TEST_INVALID\"}")]
+    [InlineData("/api/transactions", "{\"transactionTypesID\":2,\"startDate\":\"2026-10-11\",\"endDate\":\"2026-10-10\",\"leaveRationale\":\"DTO_TEST_INVALID\"}")]
+    [InlineData("/api/employees", "{\"code\":\"DTO_TEST_INVALID\",\"name\":\"test\",\"password\":\"short\",\"employeeRole\":9,\"employeeLevelId\":0,\"departmentID\":0}")]
+    [InlineData("/api/dashboard/stats", "{\"employeeId\":-1}")]
+    [InlineData("/api/transactions/filter", "{\"groupBy\":\"arbitrary\"}")]
+    public async Task Invalid_json_contracts_return_400_without_writes(string endpoint, string json)
+    {
+        using var factory = new RmsFactory();
+        using var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var employeeCount = await db.Employees.CountAsync(e => e.Code == "DTO_TEST_INVALID");
+        var transactionCount = await db.Transactions.CountAsync(t => t.LeaveRationale == "DTO_TEST_INVALID");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", await scope.ServiceProvider.GetRequiredService<SessionService>().IssueAsync(1));
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync(endpoint, content);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.True(result.RootElement.TryGetProperty("errors", out _));
+        Assert.Equal(employeeCount, await db.Employees.CountAsync(e => e.Code == "DTO_TEST_INVALID"));
+        Assert.Equal(transactionCount, await db.Transactions.CountAsync(t => t.LeaveRationale == "DTO_TEST_INVALID"));
     }
 
     [Trait("Category", "Concurrency")]

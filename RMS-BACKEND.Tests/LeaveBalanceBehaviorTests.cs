@@ -91,7 +91,7 @@ public class LeaveBalanceBehaviorTests
                 EmployeeRole = EmployeeRole.Employee,
                 DateOfEmployment = new DateTime(2026, 7, 1)
             };
-            employee.Password = new PasswordHasher<Employee>().HashPassword(employee, "synthetic-test-password");
+            employee.Password = "synthetic-test-password";
             db.Employees.Add(employee);
             await db.SaveChangesAsync();
             var balance = await new LeaveBalanceService(db, new LeaveCalculationService())

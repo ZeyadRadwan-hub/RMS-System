@@ -30,6 +30,96 @@ public class AuthorizationTests
         }
     }
 
+    [Trait("Category", "Authentication")]
+    [Fact]
+    public async Task Login_accepts_the_stored_test_password_and_rejects_the_old_bypass()
+    {
+        using var factory = new RmsFactory();
+        using var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var employee = await db.Employees.AsNoTracking().SingleAsync(e => e.Id == 1);
+
+        using var rejected = await client.PostAsJsonAsync("/api/auth/login",
+            new { code = employee.Code, password = "Pass@1234" });
+        Assert.Equal(HttpStatusCode.Unauthorized, rejected.StatusCode);
+
+        using var accepted = await client.PostAsJsonAsync("/api/auth/login",
+            new { code = employee.Code, password = employee.Password });
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        using var json = JsonDocument.Parse(await accepted.Content.ReadAsStringAsync());
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", json.RootElement.GetProperty("token").GetString());
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await client.PostAsync("/api/auth/logout", null)).StatusCode);
+    }
+
+    [Trait("Category", "Authentication")]
+    [Fact]
+    public async Task New_employee_and_password_change_store_plaintext_and_revoke_the_old_session()
+    {
+        using var factory = new RmsFactory();
+        using var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var code = "RMS_PLAIN_" + Guid.NewGuid().ToString("N")[..12];
+        var initialPassword = "initial9x";
+        var changedPassword = "changed9x";
+        var hrToken = await scope.ServiceProvider.GetRequiredService<SessionService>().IssueAsync(1);
+        try
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
+            using var created = await client.PostAsJsonAsync("/api/employees", new
+            {
+                code, name = "Temporary password workflow test", password = initialPassword,
+                dateOfEmployment = new DateTime(2020, 1, 1), employeeRole = 0,
+                employeeLevelId = 1, departmentID = 7
+            });
+            Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+            var employee = await db.Employees.AsNoTracking().SingleAsync(e => e.Code == code);
+            Assert.Equal(initialPassword, employee.Password);
+
+            client.DefaultRequestHeaders.Authorization = null;
+            using var signedIn = await client.PostAsJsonAsync("/api/auth/login",
+                new { code, password = initialPassword });
+            Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
+            using var loginJson = JsonDocument.Parse(await signedIn.Content.ReadAsStringAsync());
+            var oldToken = loginJson.RootElement.GetProperty("token").GetString();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oldToken);
+            using var changed = await client.PostAsJsonAsync("/api/auth/change-password",
+                new { currentPassword = initialPassword, newPassword = changedPassword });
+            Assert.Equal(HttpStatusCode.NoContent, changed.StatusCode);
+            Assert.Equal(changedPassword, await db.Employees.AsNoTracking().Where(e => e.Code == code)
+                .Select(e => e.Password).SingleAsync());
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
+
+            client.DefaultRequestHeaders.Authorization = null;
+            using var oldLogin = await client.PostAsJsonAsync("/api/auth/login",
+                new { code, password = initialPassword });
+            Assert.Equal(HttpStatusCode.Unauthorized, oldLogin.StatusCode);
+            using var newLogin = await client.PostAsJsonAsync("/api/auth/login",
+                new { code, password = changedPassword });
+            Assert.Equal(HttpStatusCode.OK, newLogin.StatusCode);
+            using var newJson = JsonDocument.Parse(await newLogin.Content.ReadAsStringAsync());
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer", newJson.RootElement.GetProperty("token").GetString());
+            Assert.Equal(HttpStatusCode.NoContent,
+                (await client.PostAsync("/api/auth/logout", null)).StatusCode);
+        }
+        finally
+        {
+            var createdId = await db.Employees.AsNoTracking().Where(e => e.Code == code)
+                .Select(e => (int?)e.Id).SingleOrDefaultAsync();
+            if (createdId.HasValue)
+            {
+                await db.AuthSessions.Where(s => s.EmployeeId == createdId).ExecuteDeleteAsync();
+                await db.Employees.Where(e => e.Id == createdId).ExecuteDeleteAsync();
+            }
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
+            await client.PostAsync("/api/auth/logout", null);
+        }
+    }
+
     [Trait("Category", "Dashboard")]
     [Fact]
     public async Task Pending_stats_include_requests_awaiting_HR()
@@ -37,14 +127,30 @@ public class AuthorizationTests
         using var factory = new RmsFactory();
         using var client = factory.CreateClient();
         using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var fixture = new RMS_BACKEND.Models.Transaction
+        {
+            Id = 2000000300, EmployeeId = 4, TransactionTypesID = 2,
+            StatusID = 2, StartDate = new DateTime(2030, 1, 15),
+            EndDate = new DateTime(2030, 1, 15), CreationDate = DateTime.UtcNow,
+            LeaveRationale = "RMS_PENDING_HR_TEST"
+        };
+        db.Transactions.Add(fixture);
+        await db.SaveChangesAsync();
+        try
+        {
         var token = await scope.ServiceProvider.GetRequiredService<SessionService>().IssueAsync(1);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        // Baseline employee 4 has exactly one Pending HR request; other tests
-        // may create requests for employee 2 in parallel.
+        // This fixture exercises Pending HR regardless of changes to user data.
         using var response = await client.PostAsJsonAsync("/api/dashboard/stats", new { employeeId = 4 });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.Equal(1, json.RootElement.GetProperty("pendingRequests").GetInt32());
+        }
+        finally
+        {
+            await db.Transactions.Where(t => t.Id == fixture.Id).ExecuteDeleteAsync();
+        }
     }
 
     [Trait("Category", "EmployeeHierarchy")]
@@ -172,12 +278,14 @@ public class AuthorizationTests
         using var scope = factory.Services.CreateScope();
         var token = await scope.ServiceProvider.GetRequiredService<SessionService>().IssueAsync(4);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var originalStatus = await db.Transactions.AsNoTracking().Where(t => t.Id == 1)
+            .Select(t => t.StatusID).SingleAsync();
         using var approve = await client.PostAsJsonAsync("/api/transactions/1/approve", new { responseMessage = "test" });
         using var reject = await client.PostAsJsonAsync("/api/transactions/1/reject", new { responseMessage = "test" });
         Assert.Equal(HttpStatusCode.Forbidden, approve.StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, reject.StatusCode);
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        Assert.Equal(1, await db.Transactions.AsNoTracking().Where(t => t.Id == 1).Select(t => t.StatusID).SingleAsync());
+        Assert.Equal(originalStatus, await db.Transactions.AsNoTracking().Where(t => t.Id == 1).Select(t => t.StatusID).SingleAsync());
         await client.PostAsync("/api/auth/logout", null);
     }
 

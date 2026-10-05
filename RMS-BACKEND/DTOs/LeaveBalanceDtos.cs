@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RMS_BACKEND.DTOs
 {
     public class LeaveBalanceDto
@@ -22,6 +24,8 @@ namespace RMS_BACKEND.DTOs
     public class LeaveBalanceReportRequestDto
     {
         public DateTime? AsOfDate { get; set; }
+
+        [Range(1, int.MaxValue)]
         public int? EmployeeId { get; set; }
     }
 }

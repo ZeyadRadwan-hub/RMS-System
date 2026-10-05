@@ -1,12 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RMS_BACKEND.DTOs
 {
     public class DashboardFilterDto
     {
+        [Range(1, int.MaxValue)]
         public int? StatusID { get; set; }
+
+        [Range(1, int.MaxValue)]
         public int? DepartmentID { get; set; }
+
+        [Range(1, int.MaxValue)]
         public int? EmployeeId { get; set; }
+
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+
+        [StringLength(20)]
+        [RegularExpression("^(Department|Employee)$")]
         public string? GroupBy { get; set; } // "Department" or "Employee"
     }
 

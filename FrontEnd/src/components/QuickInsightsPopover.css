@@ -241,11 +241,8 @@
     right: 0;
 }
 
-/* Responsive: hide on touch devices */
+/* Touch users open the same insights with the button. */
 @media (hover: none) and (pointer: coarse) {
-    .qi-popover {
-        display: none !important;
-    }
     .qi-anchor:hover .qi-employee-name {
         color: inherit;
         border-bottom-color: transparent;

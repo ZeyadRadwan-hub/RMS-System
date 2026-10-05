@@ -1,8 +1,26 @@
 # دليل تشغيل وإصلاح RMS — 2026-10-05
 
-هذه الأدلة تخص نسخة الاختبار على `(localdb)\MSSQLLocalDB`، قاعدة `RMS`، Windows Authentication للحساب `DASH\Zeyad Radwan`. لم تُستخدم قاعدة أخرى. مجلد المشروع ليس Git worktree، لذلك لا يوجد commit/HEAD. التقريرين الأصليين في `Reports/` لم يتغيرا.
+## إعادة تحقق بعد توجيه عدم استخدام Hash لكلمات المرور
+
+- `dotnet test RMS-BACKEND.Tests/RMS-BACKEND.Tests.csproj --no-restore --verbosity quiet`: Passed 114، Failed 0، Skipped 0.
+- `npm --prefix FrontEnd test`: Passed 8، Failed 0. `npm --prefix FrontEnd run lint` و`npm --prefix FrontEnd run build`: Exit 0.
+- `browser_smoke.py` على Edge headless: Exit 0؛ دخول الأدوار والتنقل، Annual/Sick/PDF، الموافقات، CRUD الموظف التجريبي، History CSV وProfile. خادم الاختبار أُوقف بعده.
+- SQL بعد التنظيف: Employees=5، Transactions=4، MedicalDocuments=0، RequestDecisionAudit=2، وكلمات المرور ما زالت موحدة. لم تُنفذ هجرة كلمات مرور جديدة.
+- `RMS_20261005_pre_hash_rotation.bak`: COPY_ONLY/CHECKSUM وRESTORE VERIFYONLY نجحا؛ أُخذت قبل قرار المستخدم الأخير ولا تعني أن هجرة Hash نُفذت. أُزيلت أداة الترحيل القديمة من المشروع؛ APP-BT-007/008 وDB-BT-003 لا تزال Open.
+
+هذه الأدلة تخص نسخة الاختبار على `(localdb)\MSSQLLocalDB`، قاعدة `RMS`، Windows Authentication للحساب `DASH\Zeyad Radwan`. لم تُستخدم قاعدة أخرى. المشروع مستودع Git مرتبط بـ`https://github.com/ZeyadRadwan-hub/RMS-System`؛ نسخة سابقة مرفوعة، وتعديلات الجولة الحالية محلية لم تُرفع بعد. التقريرين الأصليين في `Reports/` لم يتغيرا.
+
+## فحص حديث يحتاج متابعة
+
+- بعد إصلاح ربط الحالات بـStatus ID: اختبارات Frontend ‏8/8، وlint/build ناجحان. محاولة `browser_status_filters.py` بالمصادقة الحقيقية توقفت عند `Login failed`؛ إصدار UI mock معزول اجتاز أربع صفحات وفلاتر الحالات والوسوم كلها. كشف اعتراض بطاقة النتائج لقائمة History ثم ثبت إصلاحه بنفس الاختبار red→green. هذا يثبت الواجهة، لا تكامل المصادقة الحقيقي.
+- أُزيل تجاوز `Pass@1234` من `AuthController.Login` بناءً على توضيح المستخدم. اختبار API أكد 401 لهذه القيمة و200 لكلمة الحساب المخزنة؛ NEW-007 الآن Fixed & Verified.
+- بطلب المستخدم، غيّر سكربت 009 كلمات مرور موظفي الاختبار الخمسة إلى نص صريح مشترك دون نشر القيمة في المستودع؛ 5/5 مطابقة، و242 جلسة نشطة أُلغيت وقت التغيير. نسخة `RMS_20261005_pre_plaintext_passwords.bak` اجتازت VERIFYONLY. هذا يُعيد فتح مخاطر APP-BT-007/008 وDB-BT-003 أمنيًا على نسخة الاختبار.
+- `browser_shared_password.py` اجتاز دخول `auth/me` وخروج الحسابات الخمسة بالقيمة الجديدة؛ `browser_smoke.py` اجتاز المسارات الكاملة بعد التغيير ونظف صفوفه إلى Employees=5 وTransactions=4 وMedicalDocuments=0 وRequestDecisionAudit=2. Backend كامل 114/114؛ Frontend 8/8، lint/build ناجحان.
+- فحص القراءة الأخير وجد Employees=5 وTransactions=4 وMedicalDocuments=0 وRequestDecisionAudit=2؛ خط الأساس السابق كان Transactions=3 وAudit=0. المعاملة الإضافية Id=881 بتاريخ 2026-10-06؛ لم ينشئها اختبار فلاتر الحالة، ومصدر التغيير غير مثبت. تُحفظ كما هي إلى أن يُعرف مصدرها.
 
 ## نسخة قاعدة البيانات وسلامتها
+
+- قبل اختبار recovery: `RMS_20261005_pre_lookup_recovery_183158.bak`، COPY_ONLY/CHECKSUM وRESTORE VERIFYONLY نجحا. `lookup_recovery.sql` حذف lookup غير مستخدمة (status 6/type 3) داخل transaction فقط، وعدّل اسم type 2 مؤقتًا للتحقق من عدم استبدال القيم الموجودة. setup استعاد الصفين ولم يغير الاسم الموجود، والتشغيل الثاني لم يغير أي lookup. ROLLBACK أعاد الصفوف الأصلية؛ مقارنات EXCEPT في الاتجاهين لكل Employees/Transactions/Statuses/TransactionTypes/EmployeeLevels نجحت. لا يشمل هذا اختبار تثبيت قاعدة جديدة أو restore فعليًا.
 
 - قبل الهجرة 007: `RMS_20261005_pre_decision_audit.bak` في `C:/Users/workstation/AppData/Local/RMS-Repair-Backups/`، `BACKUP DATABASE ... WITH COPY_ONLY, INIT, CHECKSUM` نجح، ثم `RESTORE VERIFYONLY ... WITH CHECKSUM` أعاد `The backup set on file 1 is valid`.
 - قبل الهجرة 008: `RMS_20261005_pre_hierarchy.bak` بالمجلد نفسه، ونجح التحقق ذاته. فحص سلسلة المدراء قبلها أعاد 0 دورة.
@@ -28,7 +46,7 @@
 
 | الأمر | آخر نتيجة مؤكدة |
 | --- | --- |
-| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 85 Passed، 0 Failed، 0 Skipped؛ بعد الهجرة 008 |
+| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 112 Passed، 0 Failed، 0 Skipped؛ بعد إصلاح DTO |
 | `npm --prefix FrontEnd test` | 5 Passed، 0 Failed |
 | `npm --prefix FrontEnd run lint` | Exit 0، 0 errors، 0 warnings |
 | `npm --prefix FrontEnd run build` | Exit 0، main JS ~309KB وDashboard ~379KB، دون تحذير chunk >500KB |
@@ -51,4 +69,11 @@ python 'C:\Users\workstation\.codex\skills\webapp-testing\scripts\with_server.py
 
 ## حدود الإثبات الحالية
 
-لم يُجرَ اختبار كل إجراء في كل شاشة بعد. `RMS_Verification_Matrix.csv` يسرد المنفذ وغير المنفذ دون اعتبار عرض صفحة أو build دليلًا كافيًا. سياسة carryover التجارية غير محددة؛ سُئل مالك النظام عن الحد والانتهاء، وبقي `APP-BT-027` محجوبًا. أُثبتت البنية المحدودة لـN+1/pagination، لكن لا توجد قياسات logical reads على حجم ممثل، ولا اختبار إنشاء قاعدة جديدة أو restore drill بسبب قيد قاعدة `RMS` وحدها. لذلك هذا سجل تقدم لا شهادة اكتمال أو جاهزية إنتاج.
+- Carryover مؤجل لمراجعة الفريق بطلب المستخدم بتاريخ 2026-10-05؛ لا يُحسب هذا البند Fixed.
+- browser_quick_insights.py فشل أولًا: aria-expanded=true لكن .qi-popover مخفية على touch بسبب display:none. بعد إزالة القاعدة اجتاز ظهور الرصيد باللمس وEnter والإغلاق بـEscape وربط aria-controls/role=status. هذا لا يثبت تشغيل قارئ شاشة فعلي.
+
+آخر suite إضافية `browser_recovery_filters.py` اجتازت جميع فلاتر Employees (الأقسام الأربعة، A/B، الاسم والكود، Active/Inactive/All)، مع fixture للموظف inactive في الاستجابة فقط دون كتابة DB. اجتازت حالات HTTP 500 وconnectionfailed لأرصدة الموظفين، مع خطأ ظاهر دون نافذة أصفار، ثم فتح التفاصيل بنجاح عند استعادة الاتصال. اجتازت Leave Balance بنفس الفشلين ثم Retry الذي يعيد My Leave Balance ويزيل الخطأ. لتكرارها استبدل اسم browser_smoke.py في الأمر أعلاه بـbrowser_recovery_filters.py، واستخدم `--host localhost --port 5173 --strictPort` لتطابق CORS.
+
+اختبارات DTO: ثلاثة اختبارات أولية فشلت قبل إضافة القواعد، ثم اجتازت. أُضيفت 18 حالة حدود غير صالحة وحالة حدود صحيحة، وخمس حالات JSON عبر API تثبت HTTP 400 دون كتابة بيانات بعلامة الاختبار. اكتشف اختبار التكامل منع موافقات صحيحة بسبب إلزام ID في body؛ صُحح لأن ID يُؤخذ من route، ثم اجتاز الاختبار الكامل 112/112. APP-BT-020 يبقى غير مغلق حتى استكمال كل حدود الفلاتر وmultipart غير الصالح.
+
+لم يُجرَ اختبار كل إجراء في كل شاشة بعد. `RMS_Verification_Matrix.csv` يسرد المنفذ وغير المنفذ دون اعتبار عرض صفحة أو build دليلًا كافيًا. سياسة carryover التجارية غير محددة؛ سُئل مالك النظام عن الحد والانتهاء، وبقي `APP-BT-027` محجوبًا. أُثبتت البنية المحدودة لـN+1/pagination، لكن لا توجد قياسات logical reads على حجم ممثل، ولا اختبار إنشاء قاعدة جديدة أو restore drill بسبب قيد قاعدة `RMS` وحدها. استرجاع lookup المفقود داخل RMS أُثبت منفصلًا باختبار transaction وrollback الموضح أعلاه. لذلك هذا سجل تقدم لا شهادة اكتمال أو جاهزية إنتاج.

@@ -8,6 +8,10 @@
     margin-bottom: var(--spacing-xl);
 }
 
+.history-filters-card {
+    z-index: 1;
+}
+
 .page-title-section {
     display: flex;
     align-items: center;

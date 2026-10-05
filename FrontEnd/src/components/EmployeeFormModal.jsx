@@ -121,8 +121,8 @@ const EmployeeFormModal = ({ isOpen, onClose, onSubmit, employee, mode }) => {
         if (!formData.departmentID) newErrors.departmentID = 'Department is required';
         if (!formData.dateOfEmployment) newErrors.dateOfEmployment = 'Date of employment is required';
         if (!formData.employeeLevelID) newErrors.employeeLevelID = 'Employee level is required';
-        if (mode === 'create' && formData.password.length < 12)
-            newErrors.password = 'An initial password of at least 12 characters is required';
+        if (mode === 'create' && formData.password.length < 9)
+            newErrors.password = 'An initial password of at least 9 characters is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -188,7 +188,7 @@ const EmployeeFormModal = ({ isOpen, onClose, onSubmit, employee, mode }) => {
                                 <label htmlFor="employee-initial-password" className="label">Initial password *</label>
                                 <input id="employee-initial-password" type="password" name="password"
                                     className={`input ${errors.password ? 'input-error' : ''}`}
-                                    value={formData.password} onChange={handleChange} minLength={12}
+                                    value={formData.password} onChange={handleChange} minLength={9}
                                     autoComplete="new-password" required />
                                 {errors.password && <span className="error-message">{errors.password}</span>}
                             </div>

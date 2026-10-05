@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RMS_BACKEND.Data;
 using RMS_BACKEND.Models;
@@ -33,12 +32,12 @@ public static class InitialAdminProvisioner
         var name = Console.ReadLine()?.Trim() ?? "";
         if (code.Length is < 1 or > 50 || name.Length is < 1 or > 200)
             throw new InvalidOperationException("Code and name are required and must fit the RMS schema");
-        Console.Write("Password (12–128 characters; hidden): ");
+        Console.Write("Password (9–128 characters; hidden): ");
         var password = ReadSecret();
         Console.Write("Confirm password (hidden): ");
         var confirmation = ReadSecret();
-        if (password.Length is < 12 or > 128 || password != confirmation)
-            throw new InvalidOperationException("Passwords differ or violate the 12–128 character requirement");
+        if (password.Length is < 9 or > 128 || password != confirmation)
+            throw new InvalidOperationException("Passwords differ or violate the 9–128 character requirement");
 
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
         await EnsureEmptyRmsAsync(db);
@@ -47,8 +46,7 @@ public static class InitialAdminProvisioner
             Id = 1, Code = code, Name = name, DepartmentID = 10, EmployeeLevelId = 2,
             EmployeeRole = EmployeeRole.Manager, DateOfEmployment = DateTime.Today, IsDeleted = false
         };
-        employee.Password = scope.ServiceProvider.GetRequiredService<IPasswordHasher<Employee>>()
-            .HashPassword(employee, password);
+        employee.Password = password;
         db.Employees.Add(employee);
         await db.SaveChangesAsync();
         await transaction.CommitAsync();

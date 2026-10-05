@@ -1,5 +1,6 @@
 """Local RMS browser smoke against the authorized RMS test database only."""
 
+import os
 import re
 import subprocess
 import uuid
@@ -12,7 +13,7 @@ credentials = {}
 for line in CREDENTIAL_FILE.read_text(encoding="utf-8").splitlines():
     fields = line.split("\t")
     if len(fields) == 3 and fields[0].isdigit():
-        credentials[int(fields[0])] = (fields[1], fields[2])
+        credentials[int(fields[0])] = (fields[1], os.environ.get("RMS_TEST_PASSWORD") or fields[2])
 assert 1 in credentials and 2 in credentials
 
 

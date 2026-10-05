@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Clock, Filter, CheckCircle, XCircle, Search, Download } from 'lucide-react';
 import { buildRequestHistoryCsv } from '../utils/exportCsv';
-import { statusLabel } from '../utils/status';
+import { statusLabel, matchesStatusFilter, statusBadgeClass } from '../utils/status';
 import { useAuth } from '../context/useAuth';
 import { useNotification } from '../context/useNotification';
 import requestService from '../services/requestService';
@@ -67,11 +67,7 @@ const History = () => {
 
         // Filter by status
         if (filters.status) {
-            filtered = filtered.filter(req => {
-                const s = req.statusName?.toLowerCase() || '';
-                const f = filters.status.toLowerCase();
-                return s.includes(f);
-            });
+            filtered = filtered.filter(req => matchesStatusFilter(req.statusID, filters.status));
         }
 
         // Filter by employee name
@@ -155,11 +151,6 @@ const History = () => {
         }
     };
 
-    const getStatusBadge = (status) => {
-        if (!status) return 'badge';
-        return `badge badge-${status.toLowerCase().replace(/\s+/g, '-')}`;
-    };
-
     if (loading) {
         return <Loading message="Loading history..." />;
     }
@@ -190,7 +181,7 @@ const History = () => {
             </div>
 
             {/* Filters */}
-            <Card className="mb-3">
+            <Card className="mb-3 history-filters-card">
                 <div className="filters-header">
                     <div className="filters-title">
                         <Filter size={20} />
@@ -312,7 +303,7 @@ const History = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={getStatusBadge(request.statusName)}>
+                                            <span className={statusBadgeClass(request.statusID)}>
                                                 {statusLabel(request.statusID, normalizeStatus(request.statusName))}
                                             </span>
                                         </td>

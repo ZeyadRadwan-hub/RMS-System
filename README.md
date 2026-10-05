@@ -216,27 +216,26 @@ Leave balance is calculated dynamically based on:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=(localdb)\\ProjectModels;Initial Catalog=RMS;..."
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;"
   }
 }
 ```
 
 ### Running the Application
 ```bash
-# Restore packages
-dotnet restore
+# Restore and build from the repository root
+dotnet restore RMS-BACKEND.slnx
+dotnet build RMS-BACKEND.slnx --no-restore
 
-# Build the project
-dotnet build
-
-# Run the application
-dotnet run
+# Run the HTTP development profile
+dotnet run --project RMS-BACKEND/RMS-BACKEND.csproj --no-build --launch-profile http
 ```
 
 The API will be available at:
-- **HTTP**: http://localhost:5000
-- **HTTPS**: https://localhost:5001
-- **Swagger UI**: https://localhost:5001 (in Development mode)
+- **HTTP**: http://localhost:5190
+- **HTTPS**: https://localhost:7167
+- **Swagger UI**: http://localhost:5190 (Development, HTTP profile)
+- **Frontend**: http://localhost:5173/login; see HOW_TO_RUN.md for the verified launch commands
 
 ## 📝 Usage Examples
 
@@ -247,14 +246,14 @@ Content-Type: application/json
 
 {
   "code": "1980009",
-  "password": "<provisioned-password>"
+  "password": "<current-test-password>"
 }
 ```
 
 ### Create Leave Request
 ```http
 POST /api/transactions
-X-Employee-Id: 2
+Authorization: Bearer <session-token>
 Content-Type: application/json
 
 {
@@ -269,7 +268,7 @@ Content-Type: application/json
 ### Approve Request (Manager/HR)
 ```http
 POST /api/transactions/1/approve
-X-Employee-Id: 1
+Authorization: Bearer <session-token>
 Content-Type: application/json
 
 {
@@ -281,8 +280,7 @@ Content-Type: application/json
 ### Get Dashboard Stats
 ```http
 POST /api/dashboard/stats
-X-Employee-Id: 1
-X-Employee-Role: HR
+Authorization: Bearer <session-token>
 Content-Type: application/json
 
 {

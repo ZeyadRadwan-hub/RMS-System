@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RMS_BACKEND.Data;
+using RMS_BACKEND.Repositories;
 using Xunit;
 
 namespace RMS_BACKEND.Tests;
@@ -9,30 +9,43 @@ public class PasswordStorageTests
 {
     [Trait("Category", "PasswordStorage")]
     [Fact]
-    public async Task Existing_accounts_have_individual_nonempty_password_hashes()
+    public async Task Existing_accounts_have_one_nonempty_plaintext_test_password()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;")
             .Options;
         await using var db = new ApplicationDbContext(options);
         Assert.Equal("RMS", db.Database.GetDbConnection().Database);
-        var hashes = await db.Employees.AsNoTracking().Select(e => e.Password).ToListAsync();
-        Assert.NotEmpty(hashes);
-        Assert.True(hashes.All(hash => hash.StartsWith("AQAAAA", StringComparison.Ordinal)
-            && hash.Length >= 80), "One or more account credentials are not strong password hashes.");
-        Assert.Equal(hashes.Count, hashes.Distinct(StringComparer.Ordinal).Count());
+        var passwords = await db.Employees.AsNoTracking().Where(e => e.Id <= 5)
+            .Select(e => e.Password).ToListAsync();
+        Assert.NotEmpty(passwords);
+        Assert.All(passwords, password => Assert.Equal(9, password.Length));
+        Assert.Single(passwords.Distinct(StringComparer.Ordinal));
     }
 
     [Trait("Category", "PasswordStorage")]
     [Fact]
-    public void Password_hash_verifier_accepts_only_the_matching_secret()
+    public async Task Employee_repository_accepts_plaintext_and_rejects_wrong_secret()
     {
-        var employee = new RMS_BACKEND.Models.Employee { Id = 123 };
-        var hasher = new PasswordHasher<RMS_BACKEND.Models.Employee>();
-        var hash = hasher.HashPassword(employee, "synthetic-test-password");
-        Assert.Equal(PasswordVerificationResult.Success,
-            hasher.VerifyHashedPassword(employee, hash, "synthetic-test-password"));
-        Assert.Equal(PasswordVerificationResult.Failed,
-            hasher.VerifyHashedPassword(employee, hash, "wrong-test-password"));
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;")
+            .Options;
+        await using var db = new ApplicationDbContext(options);
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var employee = await db.Employees.FirstAsync(e => e.Id == 2);
+        var originalPassword = employee.Password;
+        employee.Password = "temporary9";
+        await db.SaveChangesAsync();
+        var repository = new EmployeeRepository(db);
+        try
+        {
+            Assert.NotNull(await repository.AuthenticateAsync(employee.Code, "temporary9"));
+            Assert.Null(await repository.AuthenticateAsync(employee.Code, "wrong-secret"));
+        }
+        finally
+        {
+            await transaction.RollbackAsync();
+            employee.Password = originalPassword;
+        }
     }
 }

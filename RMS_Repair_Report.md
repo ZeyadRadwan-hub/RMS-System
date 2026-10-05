@@ -2,16 +2,16 @@
 
 الحالة: **العمل لم يكتمل بعد، ولا توجد شهادة جاهزية إنتاج.** أصلحنا واختبرنا أجزاء جوهرية، لكن بقيت بنود غُيّرت ولم تكتمل تغطيتها، وقياس أداء ممثل غير متاح، وقاعدة carryover تحتاج قرار صاحب النظام. ملف CSV المرافق جزء من هذا التقرير ويحفظ كل صف أصلي ورقم الورقة/الصف وأولويته ودليل الإغلاق.
 
-السجل: 93 بندًا = 87 أصلية + 6 جديدة. Fixed & Verified: 78؛ Fixed, Not Verified: 14؛ Open: 0؛ Blocked: 1. لا تُدمج الملاحظات المتكررة في الأعداد؛ لأنها صفوف أصلية يجب تتبعها منفردة.
+السجل: 95 بندًا = 87 أصلية + 8 جديدة. Fixed & Verified: 85؛ Fixed, Not Verified: 6؛ Open: 3؛ Blocked: 1. لا تُدمج الملاحظات المتكررة في الأعداد؛ لأنها صفوف أصلية يجب تتبعها منفردة.
 
 ## البيئة وحماية البيانات
 
-التشغيل والاختبار على `(localdb)\MSSQLLocalDB` / `RMS` بحساب Windows `DASH\Zeyad Radwan` فقط. المجلد ليس Git repository. أخذنا نسخ `COPY_ONLY, CHECKSUM` خارج OneDrive قبل كل تغيير schema/بيانات مهم وتأكدنا بـ`RESTORE VERIFYONLY`؛ لم نجرِ restore فعليًا لأن التصريح لا يسمح بقاعدة أخرى. أعداد البيانات الأساسية بعد تنظيف الاختبارات: 5 موظفين، 3 معاملات، 0 مستند تجريبي، 0 سجل قرار تجريبي.
+التشغيل والاختبار على `(localdb)\MSSQLLocalDB` / `RMS` بحساب Windows `DASH\Zeyad Radwan` فقط. نسخة Git سابقة مرفوعة إلى https://github.com/ZeyadRadwan-hub/RMS-System، والتعديلات الحالية محلية لم تُرفع بعد. أخذنا نسخ `COPY_ONLY, CHECKSUM` خارج OneDrive قبل تغييرات schema/البيانات المهمة وتأكدنا بـ`RESTORE VERIFYONLY`؛ لم نجرِ restore فعليًا لأن التصريح لا يسمح بقاعدة أخرى. آخر قراءة: 5 موظفين و4 معاملات و0 مستند طبي و2 سجل قرار؛ ظهرت المعاملة الرابعة وسجلا القرار بعد خط الأساس السابق، وحُفظوا كما هم. تقرير تغييرات الـschema للفريق: `RMS_Database_Schema_Review.md`.
 
 ## نتيجة الاختبارات الحالية
 
-- Backend: 85/85 اختبارًا ناجحًا بعد هجرة 008، وصفر skipped.
-- Frontend Node: 5/5 ناجحة. `npm run lint`: صفر أخطاء/تحذيرات. `npm run build`: ناجح، ملف JS الأساسي نحو 309KB بلا تحذير الحجم. `npm audit --audit-level=low`: صفر ثغرات معلنة.
+- Backend: 112/112 اختبارًا ناجحًا بعد إصلاح DTO، وصفر skipped.
+- Frontend Node: 8/8 ناجحة في آخر تشغيل؛ `npm run lint` بلا أخطاء، و`npm run build` ناجح (main نحو 309KB). فحص `npm audit` الأسبق أظهر صفرًا؛ لم يُعد بعد أحدث تعديل.
 - Browser E2E ضد الواجهة والـAPI وSQL الحقيقية: دخول الموظف والمدير وHR، إنشاء Annual وSick ومرفق وتنزيله، إنشاء/تعديل/نقل/أرشفة موظف، موافقة المدير ثم HR، موبايل وكيبورد. تفاصيل الأوامر والنتائج في `RMS_Test_Evidence/acceptance_2026-10-05.md`.
 - اختبارات التزامن: 50 طلبًا مستقلاً نجحت بعد فشل 45/50 قبل الإصلاح؛ طلبان متداخلان لا ينجح منهما إلا واحد؛ قراران نهائيان متسابقان لا ينجح منهما إلا واحد.
 
@@ -25,7 +25,7 @@
 
 ## تطبيق الهجرات والرجوع
 
-الهجرات 002–008 مطبقة على RMS التجريبية فقط، وتفاصيل كل خطوة وسكربت rollback في `RMS-BACKEND/Database/MIGRATIONS.md`. أي قاعدة أخرى تحتاج backup والتحقق من baseline قبل تطبيقها بالترتيب؛ لا يُشغل DDL من startup. كلمات المرور القديمة دُوّرت إلى hashes مستقلة، وملف provisioning سري خارج المشروع بصلاحيات Windows مقيدة؛ لا تظهر أسراره هنا. استعادة بيانات ما قبل التدوير تتطلب قرارًا منفصلًا لأنها تعيد أيضًا كلمة المرور الضعيفة القديمة.
+الهجرات البنيوية 002–008 مطبقة على RMS التجريبية فقط، وتفاصيلها وسكربتات rollback في `RMS-BACKEND/Database/MIGRATIONS.md` و`RMS_Database_Schema_Review.md`. أي قاعدة أخرى تحتاج backup والتحقق من baseline قبل تطبيقها بالترتيب؛ لا يُشغل DDL من startup. سكربت 009 غيّر بيانات كلمات مرور نسخة الاختبار فقط إلى النص المشترك بطلب المستخدم، بعد نسخة `RMS_20261005_pre_plaintext_passwords.bak` متحقَّق منها؛ لم يغيّر الـschema. ملف credentials القديم لم يعد مصدر كلمات المرور الحالية.
 
 ## البنود الفردية
 
@@ -81,17 +81,17 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 14؛ الخطورة: Critical.
 - السبب: لا يوجد hashing ولا password verifier
-- قبل/بعد: قبل: بالكود: SQL predicate e.Password == password والحقل نص مباشر | بعد: السلوك المحدد مثبت بالدليل المذكور
-- التعديل: تدوير كلمات المرور إلى hashes فردية، provisioner بلا أسرار ثابتة، وحد محاولات موزع حسب الحساب والـIP.
-- التحقق: PasswordStorage وAuthorizationTests؛ migrations 002/006. الحالة: **Fixed & Verified**.
+- قبل/بعد: كان النص الصريح؛ ثم استُخدمت hashes فردية؛ بطلب المستخدم عادت نسخة RMS التجريبية إلى نص صريح مشترك.
+- التعديل الحالي: المقارنة بالنص المخزن دون استثناء خلفي؛ لا يحل عيب تخزين النص الصريح.
+- التحقق: 5/5 كلمات مرور متطابقة بنص صريح؛ اختبار Login وPasswordStorage ناجح. الحالة الأمنية: **Open** بقرار المستخدم لنسخة الاختبار.
 
 ### APP-BT-008 — حسابات تجريبية بكلمات مرور ثابتة في سكربت التأسيس
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 15؛ الخطورة: Critical.
 - السبب: بيانات اعتماد افتراضية مضمنة في المصدر
-- قبل/بعد: قبل: بالكود: seed يضيف حسابات بكلمة مرور ثابتة ويطبع بيانات الدخول | بعد: السلوك المحدد مثبت بالدليل المذكور
-- التعديل: تدوير كلمات المرور إلى hashes فردية، provisioner بلا أسرار ثابتة، وحد محاولات موزع حسب الحساب والـIP.
-- التحقق: PasswordStorage وAuthorizationTests؛ migrations 002/006. الحالة: **Fixed & Verified**؛ الاعتماديات: BT-007.
+- قبل/بعد: الـseed القديم كان يحوي سرًا ثابتًا؛ أزيل من المصدر، لكن 5 حسابات اختبار تشترك الآن في سر معروف.
+- التعديل: إعادة الضبط عبر سكربت `009` بطلب المستخدم دون تضمين السر في المستودع.
+- التحقق: SQL يثبت قيمة مشتركة للحسابات الخمسة؛ الخطر الأمني لا يزال قائمًا. الحالة: **Open**؛ الاعتماديات: APP-BT-007.
 
 ### APP-BT-009 — سكريبت إنشاء DB لا يطابق EF schema
 
@@ -162,8 +162,8 @@
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 27؛ الخطورة: Medium.
 - السبب: غياب حماية brute force
 - قبل/بعد: قبل: بالكود: لا RateLimiter أو عداد محاولات | بعد: السلوك المحدد مثبت بالدليل المذكور
-- التعديل: تدوير كلمات المرور إلى hashes فردية، provisioner بلا أسرار ثابتة، وحد محاولات موزع حسب الحساب والـIP.
-- التحقق: PasswordStorage وAuthorizationTests؛ migrations 002/006. الحالة: **Fixed & Verified**.
+- التعديل: حد محاولات على مستوى IP والحساب عبر `LoginAttempts`، باقٍ بعد سياسة كلمات المرور التجريبية الجديدة.
+- التحقق: اختبار المحاولة السادسة يعيد 429؛ migration 006. الحالة: **Fixed & Verified**.
 
 ### APP-BT-018 — CORS يسمح بأي Origin وMethod وHeader
 
@@ -186,8 +186,8 @@
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 30؛ الخطورة: Medium.
 - السبب: الاعتماد على قيود DB والواجهة
 - قبل/بعد: قبل: بالكود: DTOs بلا Required/Range/StringLength؛ enum cast لا يتحقق | بعد: الإغلاق غير مثبت بعد
-- التعديل: أضيف تحقق إلى طلبات الموظف والطلبات والملفات، لكن لم يكتمل حصر جميع DTOs وحدودها.
-- التحقق: اختبارات validation الحالية؛ تغطية DTO شاملة لم تُنفذ. الحالة: **Fixed, Not Verified**.
+- التعديل: DataAnnotations وcross-field validation للموظف والطلب والمصادقة والفلاتر، مع حفظ IDs المأخوذة من route كحقول غير إلزامية في body. استكمال كل حدود الفلاتر ومسارات multipart غير الصالحة ما زال مطلوبًا.
+- التحقق: DtoValidationTests؛ Invalid_json_contracts_return_400_without_writes؛ 112/112 Backend؛ browser smoke. الحالة: **Fixed, Not Verified**.
 
 ### APP-BT-021 — حذف الموظف Hard Delete خلاف التوثيق
 
@@ -242,8 +242,8 @@
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 37؛ الخطورة: Medium.
 - السبب: الميزة غير منفذة
 - قبل/بعد: قبل: بالكود: CarryoverFromPreviousYear = 0 ثابت | بعد: الإغلاق غير مثبت بعد
-- التعديل: لم تُنفذ معادلة carryover لأن حد الترحيل والانتهاء غير محددين في المستندات؛ طُلب قرار مالك النظام.
-- التحقق: README.md؛ سؤال سياسة carryover. الحالة: **Blocked**.
+- التعديل: مؤجل لمراجعة الفريق بقرار المستخدم بتاريخ 2026-10-05؛ سياسة الأنواع والحد والانتهاء وأولوية الخصم غير محددة. لم يُنفذ حساب افتراضي.
+- التحقق: قرار المستخدم «Skip دلوقتي وهرجع فيها للTeam». الحالة: **Blocked — مؤجل للفريق، وليس Fixed**.
 
 ### APP-BT-028 — إجازة عابرة للسنة لا تدخل رصيد السنة الجديدة
 
@@ -281,17 +281,17 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 42؛ الخطورة: Medium.
 - السبب: استعمال containment بدل overlap
-- قبل/بعد: قبل: بالكود: start>=from وend<=to، فيختفي | بعد: الإغلاق غير مثبت بعد
-- التعديل: فلترة الفترة أصبحت overlap مشتركة بدل containment في الصفحات الرئيسية.
-- التحقق: dateRange.test.js؛ فلاتر كل شاشة لم تُجرب بالمتصفح. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: start>=from وend<=to أخفت طلب 28/9–3/10 من فلتر أكتوبر؛ بعد: التقاطع يظهره.
+- التعديل: فلترة overlap مشتركة في MyRequests وAllRequests وTeamRequests وHRRequests وHistory.
+- التحقق: dateRange.test.js، واختبار متصفح API mock معزول اجتاز حدود أكتوبر في الصفحات الخمس. الحالة: **Fixed & Verified** لسلوك الواجهة.
 
 ### APP-BT-033 — Fallback API URL والوثائق غير متوافقين مع launch settings
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 43؛ الخطورة: Medium.
 - السبب: إعدادات مشتتة والـfallback قديم
-- قبل/بعد: قبل: fallback=HTTPS 5001 غير مضبوط؛ .env الحالي يستخدم HTTP 5190 ويعمل من حيث الـport | بعد: الإغلاق غير مثبت بعد
-- التعديل: تكوين API التطوير والإنتاج أصبح صريحًا؛ توثيق التشغيل التفصيلي ما زال بحاجة مراجعة نهائية.
-- التحقق: FrontEnd/src/services/api.js؛ build؛ HOW_TO_RUN.md. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: fallback=HTTPS 5001 غير مضبوط؛ .env الحالي يستخدم HTTP 5190 ويعمل من حيث الـport | بعد: السلوك المحدد مثبت باختبار المتصفح الموضح
+- التعديل: توحيد تعليمات التشغيل على MSSQLLocalDB/RMS وHTTP 5190 وFrontend 5173؛ تحديث README وQUICK_START وHOW_TO_RUN وAPI_DOCUMENTATION إلى Bearer وإزالة تعليمات الهوية القديمة.
+- التحقق: browser_recovery_filters.py وbrowser_smoke.py على الأوامر الموثقة؛ مراجعة launchSettings/appsettings/api.js؛ production خارج نطاق دليل التطوير. الحالة: **Fixed & Verified**.
 
 ### APP-BT-034 — reject يرسل reason بدل responseMessage
 
@@ -361,9 +361,9 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 52؛ الخطورة: Medium.
 - السبب: hardcoded filters وعقد DTO قديم
-- قبل/بعد: قبل: بالكود: role/levelID/levelName غير موجودة في DTO؛ IDs الأقسام 1-4 لا 7-11 | بعد: الإغلاق غير مثبت بعد
-- التعديل: حقول فلترة الموظفين صارت تطابق DTO؛ اختبار الفلاتر بالمتصفح لم يكتمل.
-- التحقق: Employees.jsx؛ browser smoke يغطي الجدول لا كل الفلاتر. الحالة: **Fixed, Not Verified**؛ الاعتماديات: BT-009.
+- قبل/بعد: قبل: بالكود: role/levelID/levelName غير موجودة في DTO؛ IDs الأقسام 1-4 لا 7-11 | بعد: السلوك المحدد مثبت باختبار المتصفح الموضح
+- التعديل: فلاتر الموظفين تطابق departmentID وemployeeLevelId وisActive؛ اختبار كل قسم ومستوى والبحث بالاسم والكود وحالات active/inactive/all، مع fixture غير محفوظة في DB لإثبات ظهور صف inactive.
+- التحقق: browser_recovery_filters.py: employee_filters_real_departments_levels_name_code_status وemployee_filters_inactive_fixture. الحالة: **Fixed & Verified**.
 
 ### APP-BT-043 — قيمة Level B وأسماء الأقسام متعارضة
 
@@ -401,17 +401,17 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 57؛ الخطورة: Medium.
 - السبب: failure swallowed
-- قبل/بعد: قبل: بالكود: catch يتجاهل الفشل ثم detail modal يستخدم قيمًا افتراضية | بعد: الإغلاق غير مثبت بعد
-- التعديل: خطأ الرصيد لم يعد صفرًا صامتًا وظهرت Retry في Leave Balance؛ اختبار فشل الشبكة ثم Retry غير مكتمل.
-- التحقق: Employees.jsx؛ LeaveBalance.jsx. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: بالكود: catch يتجاهل الفشل ثم detail modal يستخدم قيمًا افتراضية | بعد: السلوك المحدد مثبت باختبار المتصفح الموضح
+- التعديل: فشل رصيد الموظف يظهر خطأ ولا يفتح نافذة بأرصدة صفرية؛ إعادة فتح التفاصيل بعد استعادة الاتصال تحمّل الرصيد الحقيقي.
+- التحقق: browser_recovery_filters.py: employee_balance_http500_and_recovery وemployee_balance_connectionfailed_and_recovery. الحالة: **Fixed & Verified**.
 
 ### APP-BT-048 — فشل تحميل صفحة Leave Balance لا يترك Retry
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 58؛ الخطورة: Medium.
 - السبب: غياب error state للصفحة
-- قبل/بعد: قبل: بالكود: showAlert فقط وتستمر الصفحة دون balance | بعد: الإغلاق غير مثبت بعد
-- التعديل: خطأ الرصيد لم يعد صفرًا صامتًا وظهرت Retry في Leave Balance؛ اختبار فشل الشبكة ثم Retry غير مكتمل.
-- التحقق: Employees.jsx؛ LeaveBalance.jsx. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: بالكود: showAlert فقط وتستمر الصفحة دون balance | بعد: السلوك المحدد مثبت باختبار المتصفح الموضح
+- التعديل: فشل تحميل Leave Balance يظهر Error وRetry؛ زر Retry يستعيد My Leave Balance عند عودة الخدمة.
+- التحقق: browser_recovery_filters.py: leave_balance_http500_retry وleave_balance_connectionfailed_retry. الحالة: **Fixed & Verified**.
 
 ### APP-BT-049 — N+1 وجلب غير محدود للأرصدة والطلبات
 
@@ -435,7 +435,7 @@
 - السبب: لا test suites مضمنة
 - قبل/بعد: قبل: dotnet test خرج 0 بلا اختبارات؛ package.json بلا test script؛ rg لا يجد test files | بعد: test suites تعمل وتُعاد بنجاح
 - التعديل: أضيفت اختبارات Backend وFrontend وbrowser حقيقية؛ اكتمال تغطية المسارات التجارية يُتتبع منفصلًا في مصفوفة التحقق.
-- التحقق: 85 Backend؛ 5 Node؛ browser_smoke.py. الحالة: **Fixed & Verified**.
+- التحقق: 112 Backend؛ 5 Node؛ browser_smoke.py؛ browser_recovery_filters.py. الحالة: **Fixed & Verified**.
 
 ### APP-BT-052 — ESLint يفشل بـ21 مشكلة
 
@@ -465,9 +465,9 @@
 
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 68؛ الخطورة: Low.
 - السبب: ربط business logic بعرض النص
-- قبل/بعد: قبل: بالكود: المقارنات على النصوص في عدة صفحات | بعد: الإغلاق غير مثبت بعد
-- التعديل: قرارات العرض الرئيسية تستخدم statusID بدل النص؛ لم تُفحص كل فلاتر/وسوم الحالة يدويًا.
-- التحقق: AllRequests/TeamRequests/History؛ browser_smoke.py. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: أسماء الحالات العربية/الناقصة كسرت الفلاتر والوسوم، خصوصًا MyRequests؛ بعد: المعرف الرقمي يحكمها.
+- التعديل: خيارات وفلاتر ووسوم الحالة في MyRequests وAllRequests وTeamRequests وHRRequests وHistory أصبحت تستخدم statusID؛ المجموعات في History محددة بالـIDs.
+- التحقق: status.test.js ثلاث حالات ناجحة؛ browser_status_filters.py اجتاز خمس صفحات ببيانات API وهمية معزولة، جميع قيم الحالات والوسوم والفلاتر؛ npm test 8/8، lint/build ناجحان. دخول الحسابات الخمسة بالـAPI الحقيقي اختُبر منفصلًا بعد تغيير كلمات المرور. الحالة: **Fixed & Verified** لسلوك الواجهة.
 
 ### APP-BT-056 — History search لا يبحث بكود الموظف
 
@@ -514,8 +514,8 @@
 - المصدر: Bug_Report.xlsx، ورقة Bug Report، صف 74؛ الخطورة: Low.
 - السبب: تفاعل أحادي modality
 - قبل/بعد: قبل: بالكود: CSS يخفي popover على touch ولا tap بديل | بعد: الإغلاق غير مثبت بعد
-- التعديل: Quick Insights أصبح قابلًا للنقر واللمس، لكن لم يكتمل اختبار اللمس/قارئ الشاشة.
-- التحقق: QuickInsightsPopover.jsx. الحالة: **Fixed, Not Verified**.
+- التعديل: أزيلت قاعدة display:none للأجهزة اللمسية بعد إثبات أن الزر يفتح النافذة لكنها مخفية بالـCSS. اللمس وEnter/Escape وربط ARIA اجتازوا نفس الاختبار بعد الإصلاح.
+- التحقق: browser_quick_insights.py: quick_insights_touch_keyboard_aria=pass؛ اختبار قارئ شاشة فعلي ما زال غير منفذ. الحالة: **Fixed, Not Verified**.
 
 ### APP-BT-062 — Console logs تطبع بيانات الموظفين والطلبات
 
@@ -577,9 +577,9 @@
 
 - المصدر: Bug_Report_Database.xlsx، ورقة Bug Report، صف 10؛ الخطورة: Critical.
 - السبب: تصميم كلمة المرور والـseed بلا hashing أو إجبار تعيين سر مختلف
-- قبل/بعد: قبل: 5 موظفين وCOUNT(DISTINCT Password)=1؛ repository يقارن Password مباشرة بالنص المدخل | بعد: السلوك المحدد مثبت بالدليل المذكور
-- التعديل: كلمات مرور hash فردية وقيد يمنع الفارغة.
-- التحقق: PasswordStorage؛ migration 003. الحالة: **Fixed & Verified**.
+- قبل/بعد: قبل الإصلاح كان 5 موظفين بكلمة نصية واحدة؛ جرى إصلاحها سابقًا بـhashes، ثم أعاد المستخدم طلب النص الموحد في RMS التجريبية.
+- التعديل: قيد عدم الفراغ باقٍ؛ سكربت `009` أعاد قيم كلمات المرور إلى النص الصريح. لا يحل هذا عيب الحماية الأصلي.
+- التحقق: 5/5 مطابقات للكلمة المطلوبة واختبار دخول لكل حساب؛ الحالة الأمنية: **Open** بقرار المستخدم.
 
 ### DB-BT-004 — قاعدة البيانات تقبل تاريخ نهاية قبل البداية
 
@@ -634,8 +634,8 @@
 - المصدر: Bug_Report_Database.xlsx، ورقة Bug Report، صف 20؛ الخطورة: Medium.
 - السبب: NOT NULL لا يمنع السلسلة الفارغة؛ DTO/الخادم بلا تحقق كافٍ
 - قبل/بعد: قبل: UPDATE نجح ثم ROLLBACK؛ القيمة الأصلية غير فارغة | بعد: السلوك المحدد مثبت بالدليل المذكور
-- التعديل: كلمات مرور hash فردية وقيد يمنع الفارغة.
-- التحقق: PasswordStorage؛ migration 003. الحالة: **Fixed & Verified**.
+- التعديل: قيد `CK_RMS_Employees_PasswordNotEmpty` يمنع الفراغ بغض النظر عن طريقة التخزين.
+- التحقق: DatabaseConstraintTests وschema الحي؛ migration 003. الحالة: **Fixed & Verified**.
 
 ### DB-BT-011 — حذف فعلي رغم وجود IsDeleted
 
@@ -721,9 +721,9 @@
 
 - المصدر: Bug_Report_Database.xlsx، ورقة Bug Report، صف 34؛ الخطورة: Low.
 - السبب: شرط idempotency على أول عنصر لا كل صف
-- قبل/بعد: قبل: بعض blocks تفحص Id=1 فقط ثم تدرج مجموعة IDs؛ لو Id=1 موجود والآخر مفقود لا يضاف | بعد: الإغلاق غير مثبت بعد
-- التعديل: seed أصبح idempotent على البيانات المأهولة؛ اختبار استرجاع lookup مفقودة في قاعدة جديدة غير مخول.
-- التحقق: database-setup.sql re-run بلا تغييرات؛ fresh DB لم يُختبر. الحالة: **Fixed, Not Verified**.
+- قبل/بعد: قبل: بعض blocks تفحص Id=1 فقط ثم تدرج مجموعة IDs؛ لو Id=1 موجود والآخر مفقود لا يضاف | بعد: استعيدت lookup المفقودة وحُفظت القيم الموجودة وثبت التطابق الكامل بعد rollback
+- التعديل: إدراج lookup المفقود لكل ID دون استبدال القيم الموجودة؛ اختبار حذف status=6 ونوع=3 داخل transaction، تشغيل setup مرتين ثم ROLLBACK مع مقارنة كل صف أصلي.
+- التحقق: RMS_Test_Evidence/lookup_recovery.sql: PASS؛ نسخة RMS_20261005_pre_lookup_recovery_183158.bak متحققة. الحالة: **Fixed & Verified**. التثبيت الجديد يحتاج اختبارًا مستقلًا.
 
 ### NEW-001 — تعارض EF OUTPUT مع triggers
 
@@ -772,3 +772,19 @@
 - قبل/بعد: قبل: فشل مثبت باختبار أحمر | بعد: اجتاز الاختبار نفسه
 - التعديل: استخدام اسم حقل DTO الصحيح.
 - التحقق: browser_employee_create_edit_transfer_archive. الحالة: **Fixed & Verified**.
+
+### NEW-007 — كلمة مرور ثابتة تتجاوز مصادقة أي حساب
+
+- المصدر: تعديل محلي ظهر أثناء فحص AuthController في 2026-10-05؛ الخطورة: Critical.
+- السبب: شرط `request.Password != "Pass@1234" && VerifyHashedPassword(...)` يتخطى المقارنة الصحيحة عند استخدام القيمة الثابتة مع أي حساب نشط.
+- بيانات الاختبار: Code حساب موجود + قيمة التجاوز القديمة؛ المتوقع 401 لأنها ليست كلمة الحساب الحالية.
+- التعديل: أزيل الاستثناء بالكامل من `AuthController`؛ Repository لا يقبل إلا مساواة كلمة المرور المخزنة.
+- التحقق: اختبار API أعاد 401 للقيمة القديمة و200 للقيمة المخزنة؛ Browser نجح في دخول الحسابات الخمسة بالكلمة الجديدة وlogout. الحالة: **Fixed & Verified**.
+
+### NEW-008 — قائمة حالة History مخفية خلف بطاقة النتائج
+
+- المصدر: اختبار متصفح معزول أثناء التحقق من APP-BT-055؛ الخطورة: Medium.
+- السبب: بطاقة الفلاتر وبطاقة النتائج لهما `position: relative`، والأخيرة كانت ترسم فوق قائمة `CustomSelect` المفتوحة وتعترض النقر.
+- بيانات الاختبار: ست طلبات وهمية بالحالات 1–6 وأسماء غير متوقعة؛ المتوقع اختيار Pending ثم ظهور طلبين؛ الفعلي قبل الإصلاح: فشل النقر بسبب `card-header`.
+- التعديل: رفع ترتيب عرض بطاقة الفلاتر في History بقيمة `z-index: 1`.
+- التحقق: نفس اختبار Playwright انتقل من الفشل إلى النجاح؛ فلاتر Pending=2 وApproved=1 وRejected=2 وCancelled=1، ثم جميع الطلبات=6؛ npm test 8/8 وlint/build ناجحة. الحالة: **Fixed & Verified**.

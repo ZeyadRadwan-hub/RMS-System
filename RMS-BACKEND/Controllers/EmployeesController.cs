@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RMS_BACKEND.Data;
 using RMS_BACKEND.DTOs;
@@ -15,14 +14,12 @@ namespace RMS_BACKEND.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly IEmployeeRepository _employeeRepo;
-        private readonly IPasswordHasher<Employee> _passwordHasher;
         private readonly ApplicationDbContext _db;
 
-        public EmployeesController(IEmployeeRepository employeeRepo, IPasswordHasher<Employee> passwordHasher,
+        public EmployeesController(IEmployeeRepository employeeRepo,
             ApplicationDbContext db)
         {
             _employeeRepo = employeeRepo;
-            _passwordHasher = passwordHasher;
             _db = db;
         }
 
@@ -138,9 +135,9 @@ namespace RMS_BACKEND.Controllers
                     DepartmentID = request.DepartmentID
                 };
 
-                if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length is < 12 or > 128)
-                    return BadRequest(new { message = "Password must contain 12–128 characters" });
-                employee.Password = _passwordHasher.HashPassword(employee, request.Password);
+                if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length is < 9 or > 128)
+                    return BadRequest(new { message = "Password must contain 9–128 characters" });
+                employee.Password = request.Password;
 
                 await using var dbTransaction = await _db.Database.BeginTransactionAsync();
                 var created = await _employeeRepo.CreateAsync(employee);

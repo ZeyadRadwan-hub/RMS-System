@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,10 +35,10 @@ public class EmployeeLifecycleTests
                 EmployeeRole = EmployeeRole.Employee,
                 DateOfEmployment = new DateTime(2020, 1, 1)
             };
-            employee.Password = new PasswordHasher<Employee>().HashPassword(employee, "synthetic-test-password");
+            employee.Password = "synthetic-test-password";
             db.Employees.Add(employee);
             await db.SaveChangesAsync();
-            var repo = new EmployeeRepository(db, new PasswordHasher<Employee>());
+            var repo = new EmployeeRepository(db);
             Assert.True(await repo.DeleteAsync(employee.Id));
             var persisted = await db.Employees.AsNoTracking().SingleOrDefaultAsync(e => e.Id == employee.Id);
             Assert.NotNull(persisted);
@@ -62,7 +61,6 @@ public class EmployeeLifecycleTests
         Assert.Equal("RMS", db.Database.GetDbConnection().Database);
         try
         {
-            var hasher = new PasswordHasher<Employee>();
             var oldManager = new Employee
             {
                 Id = 2000000010,
@@ -73,7 +71,7 @@ public class EmployeeLifecycleTests
                 EmployeeRole = EmployeeRole.Manager,
                 DateOfEmployment = new DateTime(2020, 1, 1)
             };
-            oldManager.Password = hasher.HashPassword(oldManager, "synthetic-test-password");
+            oldManager.Password = "synthetic-test-password";
             var report = new Employee
             {
                 Id = 2000000011,
@@ -85,11 +83,11 @@ public class EmployeeLifecycleTests
                 ManagerId = oldManager.Id,
                 DateOfEmployment = new DateTime(2020, 1, 1)
             };
-            report.Password = hasher.HashPassword(report, "synthetic-test-password");
+            report.Password = "synthetic-test-password";
             db.Employees.AddRange(oldManager, report);
             await db.SaveChangesAsync();
 
-            var controller = new EmployeesController(new EmployeeRepository(db, hasher), hasher, db)
+            var controller = new EmployeesController(new EmployeeRepository(db), db)
             {
                 ControllerContext = new ControllerContext
                 {

@@ -115,8 +115,8 @@ const Profile = () => {
                         <label htmlFor="current-password">Current password</label>
                         <input id="current-password" type="password" autoComplete="current-password"
                             value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} required />
-                        <label htmlFor="new-password">New password (12 characters minimum)</label>
-                        <input id="new-password" type="password" autoComplete="new-password" minLength={12}
+                        <label htmlFor="new-password">New password (9 characters minimum)</label>
+                        <input id="new-password" type="password" autoComplete="new-password" minLength={9}
                             value={newPassword} onChange={event => setNewPassword(event.target.value)} required />
                         {changeError && <p role="alert" className="error-message">{changeError}</p>}
                         <button type="submit" className="btn btn-primary" disabled={changing}>
