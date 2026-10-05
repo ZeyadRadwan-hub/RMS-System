@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,28 @@ public class TransactionValidationTests
                         @"Server=(localdb)\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;"
                 }));
         }
+    }
+
+    [Trait("Category", "Performance")]
+    [Fact]
+    public async Task Organization_request_lists_are_pageable_and_bounded()
+    {
+        using var factory = new RmsFactory();
+        using var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", await scope.ServiceProvider.GetRequiredService<SessionService>().IssueAsync(1));
+
+        using var response = await client.GetAsync("/api/transactions/all?page=1&pageSize=1");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = json.RootElement;
+        Assert.True(root.TryGetProperty("items", out var items));
+        Assert.Equal(1, items.GetArrayLength());
+        Assert.Equal(1, root.GetProperty("page").GetInt32());
+        Assert.Equal(1, root.GetProperty("pageSize").GetInt32());
+        Assert.Equal(3, root.GetProperty("totalCount").GetInt32());
+        Assert.True(root.GetProperty("hasNext").GetBoolean());
     }
 
     [Trait("Category", "Concurrency")]

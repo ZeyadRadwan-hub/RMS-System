@@ -204,11 +204,12 @@ namespace RMS_BACKEND.Controllers
         /// Get my own requests (Employee)
         /// </summary>
         [HttpGet("my-requests")]
-        public async Task<ActionResult<List<TransactionResponseDto>>> GetMyRequests()
+        public async Task<ActionResult<PagedResultDto<TransactionResponseDto>>> GetMyRequests(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
             try
             {
-                var result = await _transactionService.GetMyRequestsAsync(User.EmployeeId());
+                var result = await _transactionService.GetMyRequestsAsync(User.EmployeeId(), page, pageSize);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -222,11 +223,12 @@ namespace RMS_BACKEND.Controllers
         /// </summary>
         [HttpGet("my-team-requests")]
         [Authorize(Roles = "Manager")]
-        public async Task<ActionResult<List<TransactionResponseDto>>> GetMyTeamRequests()
+        public async Task<ActionResult<PagedResultDto<TransactionResponseDto>>> GetMyTeamRequests(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
             try
             {
-                var result = await _transactionService.GetMyTeamRequestsAsync(User.EmployeeId());
+                var result = await _transactionService.GetMyTeamRequestsAsync(User.EmployeeId(), page, pageSize);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -240,11 +242,12 @@ namespace RMS_BACKEND.Controllers
         /// </summary>
         [HttpGet("all")]
         [Authorize(Roles = "HR,Board")]
-        public async Task<ActionResult<List<TransactionResponseDto>>> GetAllRequests()
+        public async Task<ActionResult<PagedResultDto<TransactionResponseDto>>> GetAllRequests(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
             try
             {
-                var result = await _transactionService.GetAllRequestsAsync(User.EmployeeId(), User.RmsRole());
+                var result = await _transactionService.GetAllRequestsAsync(User.EmployeeId(), User.RmsRole(), page, pageSize);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -257,12 +260,14 @@ namespace RMS_BACKEND.Controllers
         /// Get filtered requests with filters
         /// </summary>
         [HttpPost("filter")]
-        public async Task<ActionResult<List<TransactionResponseDto>>> GetFilteredRequests(
-            [FromBody] DashboardFilterDto filter)
+        public async Task<ActionResult<PagedResultDto<TransactionResponseDto>>> GetFilteredRequests(
+            [FromBody] DashboardFilterDto filter,
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
             try
             {
-                var result = await _transactionService.GetFilteredRequestsAsync(filter, User.EmployeeId(), User.RmsRole());
+                var result = await _transactionService.GetFilteredRequestsAsync(
+                    filter, User.EmployeeId(), User.RmsRole(), page, pageSize);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException) { return Forbid(); }

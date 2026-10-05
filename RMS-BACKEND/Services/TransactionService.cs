@@ -14,10 +14,10 @@ namespace RMS_BACKEND.Services
         Task<TransactionResponseDto> ApproveTransactionAsync(int approverId, int transactionId, string responseMessage);
         Task<TransactionResponseDto> RejectTransactionAsync(int rejecterId, int transactionId, string responseMessage);
         Task<TransactionResponseDto> GetTransactionByIdAsync(int transactionId, int requestingEmployeeId);
-        Task<List<TransactionResponseDto>> GetMyRequestsAsync(int employeeId);
-        Task<List<TransactionResponseDto>> GetMyTeamRequestsAsync(int managerId);
-        Task<List<TransactionResponseDto>> GetAllRequestsAsync(int requestingEmployeeId, string role);
-        Task<List<TransactionResponseDto>> GetFilteredRequestsAsync(DashboardFilterDto filter, int requestingEmployeeId, string role);
+        Task<PagedResultDto<TransactionResponseDto>> GetMyRequestsAsync(int employeeId, int page, int pageSize);
+        Task<PagedResultDto<TransactionResponseDto>> GetMyTeamRequestsAsync(int managerId, int page, int pageSize);
+        Task<PagedResultDto<TransactionResponseDto>> GetAllRequestsAsync(int requestingEmployeeId, string role, int page, int pageSize);
+        Task<PagedResultDto<TransactionResponseDto>> GetFilteredRequestsAsync(DashboardFilterDto filter, int requestingEmployeeId, string role, int page, int pageSize);
     }
 
     public class TransactionService : ITransactionService
@@ -285,28 +285,32 @@ namespace RMS_BACKEND.Services
             return MapToDto(transaction, requestingEmployeeId);
         }
 
-        public async Task<List<TransactionResponseDto>> GetMyRequestsAsync(int employeeId)
+        public async Task<PagedResultDto<TransactionResponseDto>> GetMyRequestsAsync(int employeeId, int page, int pageSize)
         {
-            var transactions = await _transactionRepo.GetByEmployeeIdAsync(employeeId);
-            return transactions.Select(t => MapToDto(t, employeeId)).ToList();
+            var pageSpec = NormalizePage(page, pageSize);
+            var transactions = await _transactionRepo.GetByEmployeeIdAsync(employeeId, pageSpec.Skip, pageSpec.Take);
+            return ToPage(transactions, employeeId, pageSpec.Page, pageSpec.Take);
         }
 
-        public async Task<List<TransactionResponseDto>> GetMyTeamRequestsAsync(int managerId)
+        public async Task<PagedResultDto<TransactionResponseDto>> GetMyTeamRequestsAsync(int managerId, int page, int pageSize)
         {
-            var transactions = await _transactionRepo.GetByManagerAsync(managerId);
-            return transactions.Select(t => MapToDto(t, managerId)).ToList();
+            var pageSpec = NormalizePage(page, pageSize);
+            var transactions = await _transactionRepo.GetByManagerAsync(managerId, pageSpec.Skip, pageSpec.Take);
+            return ToPage(transactions, managerId, pageSpec.Page, pageSpec.Take);
         }
 
-        public async Task<List<TransactionResponseDto>> GetAllRequestsAsync(int requestingEmployeeId, string role)
+        public async Task<PagedResultDto<TransactionResponseDto>> GetAllRequestsAsync(int requestingEmployeeId, string role, int page, int pageSize)
         {
             if (role is not ("HR" or "Board"))
                 throw new UnauthorizedAccessException("Organization-wide requests require HR or Board");
-            var transactions = await _transactionRepo.GetAllAsync();
-            return transactions.Select(t => MapToDto(t, requestingEmployeeId)).ToList();
+            var pageSpec = NormalizePage(page, pageSize);
+            var transactions = await _transactionRepo.GetAllAsync(pageSpec.Skip, pageSpec.Take);
+            return ToPage(transactions, requestingEmployeeId, pageSpec.Page, pageSpec.Take);
         }
 
-        public async Task<List<TransactionResponseDto>> GetFilteredRequestsAsync(DashboardFilterDto filter, int requestingEmployeeId, string role)
+        public async Task<PagedResultDto<TransactionResponseDto>> GetFilteredRequestsAsync(DashboardFilterDto filter, int requestingEmployeeId, string role, int page, int pageSize)
         {
+            var pageSpec = NormalizePage(page, pageSize);
             var transactions = await _transactionRepo.GetFilteredAsync(
                 filter.StatusID,
                 filter.DepartmentID,
@@ -314,9 +318,31 @@ namespace RMS_BACKEND.Services
                 filter.StartDate,
                 filter.EndDate,
                 requestingEmployeeId,
-                role);
+                role,
+                pageSpec.Skip,
+                pageSpec.Take);
 
-            return transactions.Select(t => MapToDto(t, requestingEmployeeId)).ToList();
+            return ToPage(transactions, requestingEmployeeId, pageSpec.Page, pageSpec.Take);
+        }
+
+        private static (int Page, int Take, int Skip) NormalizePage(int page, int pageSize)
+        {
+            var normalizedPage = Math.Max(1, page);
+            var normalizedTake = Math.Clamp(pageSize <= 0 ? 100 : pageSize, 1, 200);
+            var skipLong = ((long)normalizedPage - 1) * normalizedTake;
+            return (normalizedPage, normalizedTake, skipLong > int.MaxValue ? int.MaxValue : (int)skipLong);
+        }
+
+        private PagedResultDto<TransactionResponseDto> ToPage(
+            PagedTransactions transactions, int requestingEmployeeId, int page, int pageSize)
+        {
+            return new PagedResultDto<TransactionResponseDto>
+            {
+                Items = transactions.Items.Select(t => MapToDto(t, requestingEmployeeId)).ToList(),
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = transactions.TotalCount
+            };
         }
 
         private TransactionResponseDto MapToDto(Transaction transaction, int requestingEmployeeId)

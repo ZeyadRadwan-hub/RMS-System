@@ -7,17 +7,19 @@ namespace RMS_BACKEND.Repositories
     public interface ITransactionRepository
     {
         Task<Transaction?> GetByIdAsync(int id);
-        Task<List<Transaction>> GetAllAsync();
-        Task<List<Transaction>> GetByEmployeeIdAsync(int employeeId);
+        Task<PagedTransactions> GetAllAsync(int skip, int take);
+        Task<PagedTransactions> GetByEmployeeIdAsync(int employeeId, int skip, int take);
         Task<List<Transaction>> GetByStatusAsync(int statusId);
         Task<List<Transaction>> GetByDepartmentAsync(int departmentId);
-        Task<List<Transaction>> GetByManagerAsync(int managerId);
-        Task<List<Transaction>> GetFilteredAsync(int? statusId, int? departmentId, int? employeeId, DateTime? startDate, DateTime? endDate, int requestingEmployeeId, string role);
+        Task<PagedTransactions> GetByManagerAsync(int managerId, int skip, int take);
+        Task<PagedTransactions> GetFilteredAsync(int? statusId, int? departmentId, int? employeeId, DateTime? startDate, DateTime? endDate, int requestingEmployeeId, string role, int skip, int take);
         Task<Transaction> CreateAsync(Transaction transaction);
         Task<Transaction> UpdateAsync(Transaction transaction);
         Task<bool> DeleteAsync(int id);
         Task<int> GetNextIdAsync();
     }
+
+    public sealed record PagedTransactions(List<Transaction> Items, int TotalCount);
 
     public class TransactionRepository : ITransactionRepository
     {
@@ -41,9 +43,9 @@ namespace RMS_BACKEND.Repositories
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<List<Transaction>> GetAllAsync()
+        public async Task<PagedTransactions> GetAllAsync(int skip, int take)
         {
-            return await _context.Transactions
+            var query = _context.Transactions
                 .Include(t => t.Employee)
                     .ThenInclude(e => e!.Department)
                 .Include(t => t.Employee)
@@ -51,21 +53,25 @@ namespace RMS_BACKEND.Repositories
                 .Include(t => t.SubstituteEmployee)
                 .Include(t => t.TransactionType)
                 .Include(t => t.Status)
-                .OrderByDescending(t => t.CreationDate)
-                .ToListAsync();
+                .OrderByDescending(t => t.CreationDate);
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip(skip).Take(take).ToListAsync();
+            return new PagedTransactions(items, totalCount);
         }
 
-        public async Task<List<Transaction>> GetByEmployeeIdAsync(int employeeId)
+        public async Task<PagedTransactions> GetByEmployeeIdAsync(int employeeId, int skip, int take)
         {
-            return await _context.Transactions
+            var query = _context.Transactions
                 .Include(t => t.Employee)
                     .ThenInclude(e => e!.Department)
                 .Include(t => t.SubstituteEmployee)
                 .Include(t => t.TransactionType)
                 .Include(t => t.Status)
                 .Where(t => t.EmployeeId == employeeId)
-                .OrderByDescending(t => t.CreationDate)
-                .ToListAsync();
+                .OrderByDescending(t => t.CreationDate);
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip(skip).Take(take).ToListAsync();
+            return new PagedTransactions(items, totalCount);
         }
 
         public async Task<List<Transaction>> GetByStatusAsync(int statusId)
@@ -94,27 +100,29 @@ namespace RMS_BACKEND.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> GetByManagerAsync(int managerId)
+        public async Task<PagedTransactions> GetByManagerAsync(int managerId, int skip, int take)
         {
-            return await _context.Transactions
+            var query = _context.Transactions
                 .Include(t => t.Employee)
                     .ThenInclude(e => e!.Department)
                 .Include(t => t.SubstituteEmployee)
                 .Include(t => t.TransactionType)
                 .Include(t => t.Status)
                 .Where(t => t.Employee!.ManagerId == managerId)
-                .OrderByDescending(t => t.CreationDate)
-                .ToListAsync();
+                .OrderByDescending(t => t.CreationDate);
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip(skip).Take(take).ToListAsync();
+            return new PagedTransactions(items, totalCount);
         }
 
-        public async Task<List<Transaction>> GetFilteredAsync(
+        public async Task<PagedTransactions> GetFilteredAsync(
             int? statusId, 
             int? departmentId, 
             int? employeeId, 
             DateTime? startDate, 
             DateTime? endDate,
             int requestingEmployeeId,
-            string role)
+            string role, int skip, int take)
         {
             var query = _context.Transactions
                 .Include(t => t.Employee)
@@ -148,9 +156,12 @@ namespace RMS_BACKEND.Repositories
             if (endDate.HasValue)
                 query = query.Where(t => t.EndDate <= endDate.Value);
 
-            return await query
+            var totalCount = await query.CountAsync();
+            var items = await query
                 .OrderByDescending(t => t.CreationDate)
+                .Skip(skip).Take(take)
                 .ToListAsync();
+            return new PagedTransactions(items, totalCount);
         }
 
         public async Task<Transaction> CreateAsync(Transaction transaction)

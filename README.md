@@ -164,10 +164,10 @@ Leave balance is calculated dynamically based on:
 - `POST /api/transactions/{id}/approve` - Approve request (Manager/HR/Board)
 - `POST /api/transactions/{id}/reject` - Reject request (Manager/HR/Board)
 - `GET /api/transactions/{id}` - Get specific request
-- `GET /api/transactions/my-requests` - Get my requests
-- `GET /api/transactions/my-team-requests` - Get team requests (Manager)
-- `GET /api/transactions/all` - Get all requests (HR/Board)
-- `POST /api/transactions/filter` - Get filtered requests
+- `GET /api/transactions/my-requests?page=1&pageSize=100` - Get a bounded page of my requests
+- `GET /api/transactions/my-team-requests?page=1&pageSize=100` - Get a bounded page of team requests (Manager)
+- `GET /api/transactions/all?page=1&pageSize=100` - Get a bounded page of all requests (HR/Board)
+- `POST /api/transactions/filter?page=1&pageSize=100` - Get a bounded filtered page; `pageSize` is capped at 200
 
 ### Dashboard
 - `POST /api/dashboard/stats` - Get dashboard statistics

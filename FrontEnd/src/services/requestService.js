@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { fetchAllPages } from './paged';
 
 const payloadForRequest = (data) => {
     if (!data.medicalDocuments?.length) return data;
@@ -17,20 +18,23 @@ const payloadForRequest = (data) => {
 export const requestService = {
     // Get all requests (HR/Board)
     getAllRequests: async () => {
-        const response = await apiClient.get('/transactions/all');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/all', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Get my requests
     getMyRequests: async () => {
-        const response = await apiClient.get('/transactions/my-requests');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/my-requests', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Get team requests (Manager)
     getTeamRequests: async () => {
-        const response = await apiClient.get('/transactions/my-team-requests');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/my-team-requests', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Create new request

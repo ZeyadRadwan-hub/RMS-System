@@ -20,6 +20,7 @@
 | 50 إنشاءً مستقلًا بالتزامن | 45 من 50 رجعت HTTP 500 | 50/50 ناجحة ومعرفات مختلفة |
 | قراران نهائيان متسابقان | قبول القرارين (2/2) | قبول قرار واحد فقط وسجل قرار واحد |
 | Pending HR في Dashboard | `pendingRequests=1` مع طلب Pending HR موجود | `pendingRequests=2` للمجموعة الأصلية؛ اختبار معزول على الموظف 4 ينجح |
+| أرصدة وطلبات بكميات كبيرة | أرصدة كل موظف نفذت استعلامين وقائمة الطلبات غير محدودة | batch للأرصدة (≤3 أوامر في اختبار 5+ موظفين) وpagination للطلبات بحد أقصى 200 صف؛ قياس logical reads ممثل لم يُجرَ |
 | دورة إدارية 1→4→1 | SQL UPDATE قُبل، ثم رُجع ضمن test transaction | SQL يرفض، وAPI يعيد 400 دون تعديل |
 | فلترة فترة متداخلة | الطلب 28/9–3/10 يختفي من فلتر أكتوبر | unit test يثبت ظهوره وحدود التقاطع |
 
@@ -27,8 +28,8 @@
 
 | الأمر | آخر نتيجة مؤكدة |
 | --- | --- |
-| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 83 Passed، 0 Failed، 0 Skipped؛ بعد الهجرة 008 |
-| `npm --prefix FrontEnd test` | 4 Passed، 0 Failed |
+| `dotnet test RMS-BACKEND.slnx --no-restore --logger "console;verbosity=minimal"` | 85 Passed، 0 Failed، 0 Skipped؛ بعد الهجرة 008 |
+| `npm --prefix FrontEnd test` | 5 Passed، 0 Failed |
 | `npm --prefix FrontEnd run lint` | Exit 0، 0 errors، 0 warnings |
 | `npm --prefix FrontEnd run build` | Exit 0، main JS ~309KB وDashboard ~379KB، دون تحذير chunk >500KB |
 | `npm --prefix FrontEnd audit --audit-level=low` | `found 0 vulnerabilities` بعد تحديث/إزالة الحزم |
@@ -50,4 +51,4 @@ python 'C:\Users\workstation\.codex\skills\webapp-testing\scripts\with_server.py
 
 ## حدود الإثبات الحالية
 
-لم يُجرَ اختبار كل إجراء في كل شاشة بعد. `RMS_Verification_Matrix.csv` يسرد المنفذ وغير المنفذ دون اعتبار عرض صفحة أو build دليلًا كافيًا. سياسة carryover التجارية غير محددة؛ سُئل مالك النظام عن الحد والانتهاء، وبقي `APP-BT-027` محجوبًا. لا توجد قياسات أداء ممثلة لـN+1 والفهارس، ولا اختبار إنشاء قاعدة جديدة أو restore drill بسبب قيد قاعدة `RMS` وحدها. لذلك هذا سجل تقدم لا شهادة اكتمال أو جاهزية إنتاج.
+لم يُجرَ اختبار كل إجراء في كل شاشة بعد. `RMS_Verification_Matrix.csv` يسرد المنفذ وغير المنفذ دون اعتبار عرض صفحة أو build دليلًا كافيًا. سياسة carryover التجارية غير محددة؛ سُئل مالك النظام عن الحد والانتهاء، وبقي `APP-BT-027` محجوبًا. أُثبتت البنية المحدودة لـN+1/pagination، لكن لا توجد قياسات logical reads على حجم ممثل، ولا اختبار إنشاء قاعدة جديدة أو restore drill بسبب قيد قاعدة `RMS` وحدها. لذلك هذا سجل تقدم لا شهادة اكتمال أو جاهزية إنتاج.

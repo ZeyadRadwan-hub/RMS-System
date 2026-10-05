@@ -214,7 +214,7 @@ public class AuthorizationTests
         using var filtered = await client.PostAsJsonAsync("/api/transactions/filter", new { });
         Assert.Equal(HttpStatusCode.OK, filtered.StatusCode);
         using var filteredJson = JsonDocument.Parse(await filtered.Content.ReadAsStringAsync());
-        Assert.All(filteredJson.RootElement.EnumerateArray(), item =>
+        Assert.All(filteredJson.RootElement.GetProperty("items").EnumerateArray(), item =>
             Assert.Equal(2, item.GetProperty("employeeId").GetInt32()));
 
         using var stats = await client.PostAsJsonAsync("/api/dashboard/stats", new { });

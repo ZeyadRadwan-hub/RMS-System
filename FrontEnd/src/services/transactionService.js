@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { fetchAllPages } from './paged';
 
 // Transaction Service (Leave Requests)
 export const transactionService = {
@@ -46,26 +47,30 @@ export const transactionService = {
 
     // Get my requests
     getMyRequests: async () => {
-        const response = await apiClient.get('/transactions/my-requests');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/my-requests', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Get team requests (Manager)
     getTeamRequests: async () => {
-        const response = await apiClient.get('/transactions/my-team-requests');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/my-team-requests', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Get all requests (HR/Board)
     getAllRequests: async () => {
-        const response = await apiClient.get('/transactions/all');
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.get('/transactions/all', {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 
     // Filter requests
     filter: async (filters) => {
-        const response = await apiClient.post('/transactions/filter', filters);
-        return response.data;
+        return fetchAllPages((page, pageSize) => apiClient.post('/transactions/filter', filters, {
+            params: { page, pageSize }
+        }).then(response => response.data));
     },
 };
 

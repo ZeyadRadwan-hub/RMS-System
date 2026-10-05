@@ -231,8 +231,8 @@ X-Employee-Id: 2
 
 ---
 
-#### GET /transactions/my-requests
-Get all requests for the logged-in employee.
+#### GET /transactions/my-requests?page=1&pageSize=100
+Get one bounded page of requests for the logged-in employee. `pageSize` is clamped to 200. The response shape is `{ items, page, pageSize, totalCount, hasNext }`.
 
 **Headers:**
 ```http
@@ -241,7 +241,8 @@ X-Employee-Id: 2
 
 **Response:**
 ```json
-[
+{
+  "items": [
   {
     "id": 1,
     "transactionTypeName": "Annual Leave",
@@ -253,8 +254,13 @@ X-Employee-Id: 2
     "canCancel": true,
     ...
   },
-  ...
-]
+    ...
+  ],
+  "page": 1,
+  "pageSize": 100,
+  "totalCount": 3,
+  "hasNext": false
+}
 ```
 
 ---
@@ -267,7 +273,7 @@ Get all requests for the manager's team.
 X-Employee-Id: 1
 ```
 
-**Response:** Array of transactions for team members
+**Query:** `page` and `pageSize` (maximum 200). The response is a bounded page object with `items`, `totalCount`, and `hasNext`.
 
 ---
 
@@ -280,7 +286,7 @@ X-Employee-Id: 1
 X-Employee-Role: HR
 ```
 
-**Response:** Array of all transactions
+**Query:** `page` and `pageSize` (maximum 200). The response is a bounded page object with `items`, `totalCount`, and `hasNext`.
 
 ---
 
@@ -305,7 +311,7 @@ X-Employee-Role: HR
 }
 ```
 
-**Response:** Array of filtered transactions
+**Query:** `page` and `pageSize` (maximum 200). The response is a bounded page object with `items`, `totalCount`, and `hasNext`.
 
 ---
 

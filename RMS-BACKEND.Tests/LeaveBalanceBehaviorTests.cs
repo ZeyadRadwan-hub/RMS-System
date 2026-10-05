@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Data.Common;
 using RMS_BACKEND.Data;
 using RMS_BACKEND.Models;
 using RMS_BACKEND.Services;
@@ -9,6 +11,28 @@ namespace RMS_BACKEND.Tests;
 
 public class LeaveBalanceBehaviorTests
 {
+    private sealed class CountingCommandInterceptor : DbCommandInterceptor
+    {
+        public int CommandCount { get; private set; }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            CommandCount++;
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            CommandCount++;
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+    }
+
     private static ApplicationDbContext NewContext() => new(
         new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;")
@@ -80,5 +104,24 @@ public class LeaveBalanceBehaviorTests
         {
             await transaction.RollbackAsync();
         }
+    }
+
+    [Trait("Category", "Performance")]
+    [Fact]
+    public async Task All_leave_balances_use_a_bounded_number_of_database_queries()
+    {
+        var counter = new CountingCommandInterceptor();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RMS;Trusted_Connection=True;TrustServerCertificate=True;")
+            .AddInterceptors(counter)
+            .Options;
+        await using var db = new ApplicationDbContext(options);
+        Assert.Equal("RMS", db.Database.GetDbConnection().Database);
+
+        var balances = await new LeaveBalanceService(db, new LeaveCalculationService())
+            .GetAllLeaveBalancesAsync(new DateTime(2026, 10, 5));
+
+        Assert.True(balances.Count >= 5);
+        Assert.InRange(counter.CommandCount, 1, 3);
     }
 }
