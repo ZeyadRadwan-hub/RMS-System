@@ -8,7 +8,7 @@
 - SQL بعد التنظيف: Employees=5، Transactions=4، MedicalDocuments=0، RequestDecisionAudit=2، وكلمات المرور ما زالت موحدة. لم تُنفذ هجرة كلمات مرور جديدة.
 - `RMS_20261005_pre_hash_rotation.bak`: COPY_ONLY/CHECKSUM وRESTORE VERIFYONLY نجحا؛ أُخذت قبل قرار المستخدم الأخير ولا تعني أن هجرة Hash نُفذت. أُزيلت أداة الترحيل القديمة من المشروع؛ APP-BT-007/008 وDB-BT-003 لا تزال Open.
 
-هذه الأدلة تخص نسخة الاختبار على `(localdb)\MSSQLLocalDB`، قاعدة `RMS`، Windows Authentication للحساب `DASH\Zeyad Radwan`. لم تُستخدم قاعدة أخرى. المشروع مستودع Git مرتبط بـ`https://github.com/ZeyadRadwan-hub/RMS-System`؛ نسخة سابقة مرفوعة، وتعديلات الجولة الحالية محلية لم تُرفع بعد. التقريرين الأصليين في `Reports/` لم يتغيرا.
+هذه الأدلة تخص نسخة الاختبار على `(localdb)\MSSQLLocalDB`، قاعدة `RMS`، Windows Authentication للحساب `DASH\Zeyad Radwan`. لم تُستخدم قاعدة أخرى. رُفعت نسخة العمل إلى `https://github.com/ZeyadRadwan-hub/RMS-System` على `main` في commit `59d4707`، والبنود الأمنية المفتوحة موثقة ولا توجد شهادة جاهزية إنتاج. التقريرين الأصليين في `Reports/` لم يتغيرا.
 
 ## فحص حديث يحتاج متابعة
 

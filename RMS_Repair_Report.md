@@ -6,7 +6,7 @@
 
 ## البيئة وحماية البيانات
 
-التشغيل والاختبار على `(localdb)\MSSQLLocalDB` / `RMS` بحساب Windows `DASH\Zeyad Radwan` فقط. نسخة Git سابقة مرفوعة إلى https://github.com/ZeyadRadwan-hub/RMS-System، والتعديلات الحالية محلية لم تُرفع بعد. أخذنا نسخ `COPY_ONLY, CHECKSUM` خارج OneDrive قبل تغييرات schema/البيانات المهمة وتأكدنا بـ`RESTORE VERIFYONLY`؛ لم نجرِ restore فعليًا لأن التصريح لا يسمح بقاعدة أخرى. آخر قراءة: 5 موظفين و4 معاملات و0 مستند طبي و2 سجل قرار؛ ظهرت المعاملة الرابعة وسجلا القرار بعد خط الأساس السابق، وحُفظوا كما هم. تقرير تغييرات الـschema للفريق: `RMS_Database_Schema_Review.md`.
+التشغيل والاختبار على `(localdb)\MSSQLLocalDB` / `RMS` بحساب Windows `DASH\Zeyad Radwan` فقط. رُفعت نسخة العمل إلى https://github.com/ZeyadRadwan-hub/RMS-System على `main` في commit `59d4707`، مع إبقاء البنود غير المحسومة واضحة؛ الرفع ليس شهادة جاهزية إنتاج. أخذنا نسخ `COPY_ONLY, CHECKSUM` خارج OneDrive قبل تغييرات schema/البيانات المهمة وتأكدنا بـ`RESTORE VERIFYONLY`؛ لم نجرِ restore فعليًا لأن التصريح لا يسمح بقاعدة أخرى. آخر قراءة: 5 موظفين و4 معاملات و0 مستند طبي و2 سجل قرار؛ ظهرت المعاملة الرابعة وسجلا القرار بعد خط الأساس السابق، وحُفظوا كما هم. تقرير تغييرات الـschema للفريق: `RMS_Database_Schema_Review.md`.
 
 ## نتيجة الاختبارات الحالية
 
