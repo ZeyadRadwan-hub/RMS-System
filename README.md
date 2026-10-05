@@ -120,8 +120,8 @@ LeaveDaysUsed = Unit × Sign × (EndDate - StartDate).Days
 ### Accrual Rules
 - **Monthly Accrual**: Total Annual Leave / 12
 - **Probation Period**: No accrual for first 6 months
-- **Carryover**: Can carry forward leave to next year once
-- **Expiration**: Remaining leave after following year expires
+- **Carryover**: Reserved field; the owner must define the amount, cap, and eligibility before calculation is enabled
+- **Expiration**: Not implemented until the carryover policy defines the expiry window
 
 ### Dynamic Calculation
 Leave balance is calculated dynamically based on:
@@ -309,13 +309,11 @@ Content-Type: application/json
 - [x] Audit trail (CreationDate, ResponseDate)
 
 ### 🔄 Future Enhancements
-- [ ] JWT authentication and authorization
-- [ ] Carryover calculation logic
+- [ ] Carryover calculation after the owner approves cap/eligibility/expiry rules
 - [ ] Email notifications
-- [ ] File attachments for leave requests
 - [ ] Advanced reporting and exports
-- [ ] Audit log for all changes
-- [ ] Password hashing and security
+- [ ] Password reset/onboarding workflow
+- [ ] Full audit log for non-decision changes
 
 ## 📖 Business Rules Summary
 
