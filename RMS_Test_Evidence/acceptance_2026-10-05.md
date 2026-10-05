@@ -1,5 +1,13 @@
 # دليل تشغيل وإصلاح RMS — 2026-10-05
 
+## تغيير كلمة المرور المشتركة الأخير — تحقق بيانات فقط
+
+- بناءً على قرار المستخدم، حُدّثت كلمات مرور موظفي الاختبار الخمسة إلى قيمة نصية مشتركة جديدة؛ لا توضع القيمة في هذا التقرير أو GitHub.
+- نسخة ما قبل التغيير `RMS_20261005_pre_shared_password_refresh.bak` اجتازت COPY_ONLY/CHECKSUM وRESTORE VERIFYONLY.
+- التعديل جرى على `RMS` وحدها داخل transaction واحدة: 5 قيم تغيرت، و91 جلسة نشطة أُلغيت دون حذف صفوفها. فحص ما بعد التنفيذ: Employees=5، DistinctPasswords=1، طول القيمة=10، Transactions=4، MedicalDocuments=0، RequestDecisionAudit=2، ActiveSessions=0.
+- لم يُشغّل اختبار دخول أو Backend/Frontend بعد هذا التغيير التزامًا بطلب المستخدم «من غير Test». نتائج الاختبارات أدناه تخص الكود/البيانات قبل تغيير هذه القيمة؛ لا تثبت التشغيل بعدها.
+- تبقى APP-BT-007 وAPP-BT-008 وDB-BT-003 مفتوحة أمنيًا لأن التخزين نص صريح والكلمة مشتركة.
+
 ## إعادة تحقق بعد توجيه عدم استخدام Hash لكلمات المرور
 
 - `dotnet test RMS-BACKEND.Tests/RMS-BACKEND.Tests.csproj --no-restore --verbosity quiet`: Passed 114، Failed 0، Skipped 0.

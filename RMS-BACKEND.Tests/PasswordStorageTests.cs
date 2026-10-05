@@ -19,7 +19,7 @@ public class PasswordStorageTests
         var passwords = await db.Employees.AsNoTracking().Where(e => e.Id <= 5)
             .Select(e => e.Password).ToListAsync();
         Assert.NotEmpty(passwords);
-        Assert.All(passwords, password => Assert.Equal(9, password.Length));
+        Assert.All(passwords, password => Assert.InRange(password.Length, 9, 128));
         Assert.Single(passwords.Distinct(StringComparer.Ordinal));
     }
 
